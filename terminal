@@ -1,0 +1,65 @@
+mkdir api
+cd api
+npm init -y 
+npm install express mongoose dotenv cors jsonwebtoken bcryptjs socket.io cloudinary nodemailer twilio express-validator multer
+npm install nodemon --save-dev
+
+# 3. Create .env file
+echo "MONGODB_URI=mongodb://localhost:27017/doctor-patient-system
+JWT_SECRET=your_jwt_secret_key
+CLIENT_URL=http://localhost:3000
+CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_email_password
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number" > .env
+
+# 4. Start MongoDB (in a separate terminal)
+mongod
+
+# 5. Start backend server
+npm run dev
+
+cd ..
+rm -rf client
+
+# Create new Vite project
+npm create vite@latest client -- --template react
+
+# Move into client directory
+cd client
+
+# Install all dependencies
+npm install @reduxjs/toolkit @tanstack/react-query axios flowbite flowbite-react@0.7.2 framer-motion react-redux react-router-dom socket.io-client @heroicons/react react-icons moment date-fns
+
+# Install dev dependencies
+npm install -D tailwindcss postcss autoprefixer @vitejs/plugin-react eslint eslint-plugin-react eslint-plugin-react-hooks eslint-plugin-react-refresh
+
+# Initialize Tailwind CSS
+npx tailwindcss init -p
+
+# Create required directories
+mkdir -p src/{components,pages/{auth,dashboard,profile,appointments,chat},features,hooks,utils,assets,store,services}
+
+# 6. Start frontend application
+npm run dev
+
+# Check Node.js version (should be 16 or higher)
+node -v
+
+# Check npm version (should be 8 or higher)
+npm -v
+
+# Remove existing node_modules and package-lock.json
+rm -rf node_modules package-lock.json
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev 
