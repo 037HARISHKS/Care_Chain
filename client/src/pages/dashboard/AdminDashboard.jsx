@@ -1,156 +1,406 @@
-import { useState, useEffect } from 'react';
-import { Card, Button, Table, Badge } from 'flowbite-react';
-import { motion } from 'framer-motion';
-//import { HiOutlineUsers, HiOutlineCalendar, HiOutlineUserMd, HiOutlineCash } from 'react-icons/hi';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  Table,
+  Tag,
+  Avatar,
+  Button,
+  Row,
+  Col,
+  Typography,
+  Badge,
+  Input,
+  Select,
+  Statistic,
+  Progress,
+  List,
+  Dropdown,
+} from "antd";
+import { motion } from "framer-motion";
+import {
+  UserOutlined,
+  CalendarOutlined,
+  DollarOutlined,
+  SettingOutlined,
+  SearchOutlined,
+  BellOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  MoreOutlined,
+} from "@ant-design/icons";
+import {
+  FaUserMd,
+  FaUserInjured,
+  FaCalendarCheck,
+  FaChartLine,
+  FaHospital,
+  FaCog,
+} from "react-icons/fa";
+
+const { Title, Text } = Typography;
+const { Search } = Input;
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
-    totalUsers: 0,
     totalDoctors: 0,
+    totalPatients: 0,
     totalAppointments: 0,
-    totalRevenue: 0
+    totalRevenue: 0,
   });
 
-  const [recentUsers, setRecentUsers] = useState([]);
-  const [pendingApprovals, setPendingApprovals] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [pendingDoctors, setPendingDoctors] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterRole, setFilterRole] = useState("all");
 
   useEffect(() => {
     // Fetch admin dashboard data
     setStats({
-      totalUsers: 500,
-      totalDoctors: 50,
-      totalAppointments: 1200,
-      totalRevenue: 50000
+      totalDoctors: 150,
+      totalPatients: 1200,
+      totalAppointments: 450,
+      totalRevenue: 25000,
     });
 
-    setRecentUsers([
+    setUsers([
       {
         id: 1,
-        name: "Dr. Jane Smith",
-        email: "jane@example.com",
+        name: "Dr. Sarah Johnson",
+        email: "sarah@example.com",
         role: "doctor",
         status: "active",
-        joinDate: "2024-02-15"
-      }
-      // Add more users...
+        joinDate: "2024-02-15",
+      },
+      {
+        id: 2,
+        name: "John Smith",
+        email: "john@example.com",
+        role: "patient",
+        status: "active",
+        joinDate: "2024-02-16",
+      },
     ]);
 
-    setPendingApprovals([
+    setPendingDoctors([
       {
         id: 1,
-        name: "Dr. Mike Johnson",
+        name: "Dr. Michael Brown",
         specialization: "Cardiologist",
-        status: "pending"
-      }
-      // Add more pending approvals...
+        experience: "10 years",
+        status: "pending",
+      },
+    ]);
+
+    setRecentActivity([
+      {
+        id: 1,
+        action: "New Registration",
+        user: "Emily White",
+        role: "patient",
+        time: "5 minutes ago",
+      },
+      {
+        id: 2,
+        action: "Appointment Booked",
+        user: "Dr. James Wilson",
+        role: "doctor",
+        time: "10 minutes ago",
+      },
     ]);
   }, []);
 
+  const userColumns = [
+    {
+      title: "User",
+      key: "user",
+      render: (_, record) => (
+        <div className="flex items-center gap-3">
+          <Avatar icon={<UserOutlined />} />
+          <div>
+            <Text strong>{record.name}</Text>
+            <div className="text-gray-500 text-sm">{record.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      render: (role) => (
+        <Tag color={role === "doctor" ? "blue" : "green"}>
+          {role.toUpperCase()}
+        </Tag>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag color={status === "active" ? "success" : "warning"}>
+          {status.toUpperCase()}
+        </Tag>
+      ),
+    },
+    {
+      title: "Join Date",
+      dataIndex: "joinDate",
+      key: "joinDate",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: () => (
+        <Dropdown
+          menu={{
+            items: [
+              { key: "1", label: "Edit" },
+              { key: "2", label: "Disable" },
+              { key: "3", label: "Delete" },
+            ],
+          }}
+          trigger={["click"]}
+        >
+          <Button type="text" icon={<MoreOutlined />} />
+        </Dropdown>
+      ),
+    },
+  ];
+
+  const StatCard = ({ icon, title, value, prefix, suffix, color, percent }) => (
+    <Card bordered={false} className="hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div className="text-4xl mb-4" style={{ color }}>
+          {icon}
+        </div>
+        <Dropdown
+          menu={{
+            items: [
+              { key: "1", label: "View Details" },
+              { key: "2", label: "Download Report" },
+            ],
+          }}
+          trigger={["click"]}
+        >
+          <Button type="text" icon={<MoreOutlined />} />
+        </Dropdown>
+      </div>
+      <Statistic
+        title={title}
+        value={value}
+        prefix={prefix}
+        suffix={suffix}
+        valueStyle={{ color }}
+      />
+      {percent && (
+        <div className="mt-2">
+          <Progress percent={percent} showInfo={false} strokeColor={color} />
+          <div className="flex justify-between text-xs mt-1">
+            <span className="text-gray-500">Progress</span>
+            <span style={{ color }}>{percent}%</span>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = filterRole === "all" || user.role === filterRole;
+    return matchesSearch && matchesRole;
+  });
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-        Admin Dashboard
-      </h1>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card>
-            <div className="flex items-center">
-              {/* <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                <HiOutlineUsers className="h-6 w-6 text-blue-600 dark:text-blue-300" />
-              </div> */}
-              <div className="ml-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalUsers}</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card>
-            <div className="flex items-center">
-              {/* <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
-                <HiOutlineUserMd className="h-6 w-6 text-green-600 dark:text-green-300" />
-              </div> */}
-              <div className="ml-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Doctors</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalDoctors}</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Add similar cards for appointments and revenue */}
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center mb-6">
+        <Title level={2} style={{ margin: 0 }}>
+          Admin Dashboard
+        </Title>
+        <div className="flex gap-3">
+          <Button icon={<BellOutlined />} />
+          <Button type="primary" icon={<FaCog />}>
+            Settings
+          </Button>
+        </div>
       </div>
 
-      {/* Recent Users Table */}
-      <Card>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Recent Users</h2>
-          <Button size="sm">View All</Button>
-        </div>
-        <Table>
-          <Table.Head>
-            <Table.HeadCell>Name</Table.HeadCell>
-            <Table.HeadCell>Email</Table.HeadCell>
-            <Table.HeadCell>Role</Table.HeadCell>
-            <Table.HeadCell>Status</Table.HeadCell>
-            <Table.HeadCell>Join Date</Table.HeadCell>
-            <Table.HeadCell>Actions</Table.HeadCell>
-          </Table.Head>
-          <Table.Body>
-            {recentUsers.map((user) => (
-              <Table.Row key={user.id}>
-                <Table.Cell>{user.name}</Table.Cell>
-                <Table.Cell>{user.email}</Table.Cell>
-                <Table.Cell>{user.role}</Table.Cell>
-                <Table.Cell>
-                  <Badge color={user.status === 'active' ? 'success' : 'warning'}>
-                    {user.status}
-                  </Badge>
-                </Table.Cell>
-                <Table.Cell>{user.joinDate}</Table.Cell>
-                <Table.Cell>
-                  <Button size="xs">View</Button>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </Card>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <StatCard
+              icon={<FaUserMd />}
+              title="Total Doctors"
+              value={stats.totalDoctors}
+              color="#1890ff"
+              percent={75}
+            />
+          </motion.div>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <StatCard
+              icon={<FaUserInjured />}
+              title="Total Patients"
+              value={stats.totalPatients}
+              color="#52c41a"
+              percent={85}
+            />
+          </motion.div>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <StatCard
+              icon={<FaCalendarCheck />}
+              title="Total Appointments"
+              value={stats.totalAppointments}
+              color="#722ed1"
+              percent={65}
+            />
+          </motion.div>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <StatCard
+              icon={<DollarOutlined />}
+              title="Total Revenue"
+              value={stats.totalRevenue}
+              prefix="$"
+              color="#fa8c16"
+              percent={90}
+            />
+          </motion.div>
+        </Col>
+      </Row>
 
-      {/* Pending Approvals */}
-      <Card>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Pending Doctor Approvals</h2>
-        </div>
-        <div className="space-y-4">
-          {pendingApprovals.map((doctor) => (
-            <div key={doctor.id} className="flex justify-between items-center p-4 border rounded-lg">
-              <div>
-                <p className="font-semibold">{doctor.name}</p>
-                <p className="text-sm text-gray-600">{doctor.specialization}</p>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
+          <Card
+            title={
+              <div className="flex items-center">
+                <FaHospital className="mr-2 text-blue-500" />
+                <span>User Management</span>
               </div>
-              <div className="flex space-x-2">
-                <Button size="sm" color="success">Approve</Button>
-                <Button size="sm" color="failure">Reject</Button>
+            }
+            extra={
+              <div className="flex gap-3">
+                <Search
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ width: 200 }}
+                />
+                <Select
+                  value={filterRole}
+                  onChange={setFilterRole}
+                  style={{ width: 120 }}
+                >
+                  <Select.Option value="all">All Roles</Select.Option>
+                  <Select.Option value="doctor">Doctors</Select.Option>
+                  <Select.Option value="patient">Patients</Select.Option>
+                </Select>
               </div>
-            </div>
-          ))}
-        </div>
+            }
+          >
+            <Table
+              columns={userColumns}
+              dataSource={filteredUsers}
+              pagination={{ pageSize: 5 }}
+            />
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={8}>
+          <Card
+            title={
+              <div className="flex items-center">
+                <FaChartLine className="mr-2 text-green-500" />
+                <span>Recent Activity</span>
+              </div>
+            }
+          >
+            <List
+              dataSource={recentActivity}
+              renderItem={(item) => (
+                <List.Item>
+                  <div className="flex items-center w-full">
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <Badge status="processing" />
+                        <Text strong className="ml-2">
+                          {item.action}
+                        </Text>
+                      </div>
+                      <div className="text-gray-500 text-sm ml-4">
+                        {item.user} • {item.role}
+                      </div>
+                    </div>
+                    <Text type="secondary" className="text-sm">
+                      {item.time}
+                    </Text>
+                  </div>
+                </List.Item>
+              )}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Card
+        title={
+          <div className="flex items-center">
+            <FaUserMd className="mr-2 text-purple-500" />
+            <span>Pending Doctor Approvals</span>
+          </div>
+        }
+      >
+        <List
+          dataSource={pendingDoctors}
+          renderItem={(doctor) => (
+            <List.Item
+              actions={[
+                <Button type="primary" icon={<CheckCircleOutlined />}>
+                  Approve
+                </Button>,
+                <Button danger icon={<CloseCircleOutlined />}>
+                  Reject
+                </Button>,
+              ]}
+            >
+              <List.Item.Meta
+                avatar={<Avatar icon={<UserOutlined />} />}
+                title={doctor.name}
+                description={
+                  <Text type="secondary">
+                    {doctor.specialization} • {doctor.experience}
+                  </Text>
+                }
+              />
+            </List.Item>
+          )}
+        />
       </Card>
     </div>
   );
 };
 
-export default AdminDashboard; 
+export default AdminDashboard;

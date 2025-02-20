@@ -25,14 +25,14 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <Router>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Navbar />
+            {/* <Navbar /> */}
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
               {/* Protected Routes */}
-              <Route element={<PrivateRoute />}>
+              {/* <Route element={<PrivateRoute />}> */}
                 <Route path="/dashboard" element={<Dashboard />}>
                   <Route path="patient" element={<PatientDashboard />} />
                   <Route path="doctor" element={<DoctorDashboard />} />
@@ -44,9 +44,8 @@ function App() {
                 </Route>
                 <Route path="/appointments" element={<Appointments />} />
                 <Route path="/chat" element={<Chat />} />
-              </Route>
+              {/* </Route> */}
             </Routes>
-            <Footer />
           </div>
         </Router>
       </QueryClientProvider>
