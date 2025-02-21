@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import { Button, TextInput, Label, Alert, Select } from "flowbite-react";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +14,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -29,7 +29,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await dispatch(login(formData)).unwrap();
+      await login(formData);
       navigate(`/dashboard/${formData.role}`);
     } catch (err) {
       setError(err.message || "Login failed");
@@ -40,7 +40,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-gray-900">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
