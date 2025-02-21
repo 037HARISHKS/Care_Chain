@@ -9,6 +9,10 @@ import {
   FileInput,
   Progress,
 } from "flowbite-react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -50,11 +54,49 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic validation
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+
     try {
-      // Submit form data
+      const endpoint = `/api/auth/${formData.role}/register`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+          address: formData.address,
+          dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        emergencyContact: formData.emergencyContact,
+        insuranceDetails: formData.insuranceDetails,
+        // Doctor specific fields
+        specialization: formData.specialization,
+        experience: formData.experience,
+        clinicAddress: formData.clinicAddress,
+        consultationFee: formData.consultationFee,
+        education: formData.education,
+        license: formData.license,
+        profilePicture: formData.profilePicture,
+      })
+      })
+
+      toast.success("Registration successful! Please login.");
       navigate("/login");
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("Registration error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Registration failed. Please try again."
+      );
     }
   };
 
@@ -453,6 +495,7 @@ const Register = () => {
           className="object-cover w-full h-full"
         />
       </div>
+      <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );
 };

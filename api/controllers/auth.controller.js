@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 const registerUser = async (req, res, role) => {
     console.log(req.body);
+    console.log("registerUser called with role:", role);
     const { name, email, password, phone, address, profilePicture, emergencyContact, dateOfBirth, gender, insuranceDetails } = req.body;
 
     try {
@@ -20,7 +21,7 @@ const registerUser = async (req, res, role) => {
         });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-
+        console.log("User created:", user);
         res.status(201).json({ user, token });
     } catch (error) {
         console.error(error.message);
@@ -34,16 +35,37 @@ export const adminRegister = (req, res) => registerUser(req, res, 'admin');
 
 const loginUser = async (req, res, role) => {
     const { email, password } = req.body;
-
+    
     try {
-        const user = await User.findOne({ email, role });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        if (user.role !== role) {
+            return res.status(403).json({ message: 'Invalid role for this login' });
+        }
+
+        // Ensure both password and stored hash are strings
+        const plainTextPassword = String(password);
+        const storedHash = String(user.password);
+
+        console.log("Debug password info:", {
+            inputPassword: plainTextPassword,
+            storedHash: storedHash
+        });
+
+        const isMatch = await bcrypt.compare(plainTextPassword, storedHash);
+        console.log("Password match result:", isMatch);
+
         if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ 
+                message: 'Invalid credentials',
+                debug: process.env.NODE_ENV === 'development' ? {
+                    passwordLength: plainTextPassword.length,
+                    hashLength: storedHash.length
+                } : undefined
+            });
         }
 
         // Update last login
@@ -67,19 +89,22 @@ const loginUser = async (req, res, role) => {
             token 
         });
     } catch (error) {
-        console.error(error.message);
+        console.error("Login error:", error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-export const patientLogin = async(req, res) =>
-{
-    console.log("HI:",req.body);
-    loginUser(req, res, 'patient');
-}
-export const doctorLogin = (req, res) => loginUser(req, res, 'doctor');
-export const adminLogin = (req, res) => loginUser(req, res, 'admin');
+export const patientLogin = async (req, res) => {
+    await loginUser(req, res, 'patient');
+};
 
+export const doctorLogin = async (req, res) => {
+    await loginUser(req, res, 'doctor');
+};
+
+export const adminLogin = async (req, res) => {
+    await loginUser(req, res, 'admin');
+};
 
 export const showDoctors = async (req, res) => {
     try {
@@ -90,7 +115,6 @@ export const showDoctors = async (req, res) => {
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
-
 
 export const showPatients = async (req, res) => {
     try {
