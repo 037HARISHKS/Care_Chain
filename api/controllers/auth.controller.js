@@ -81,7 +81,7 @@ export const doctorLogin = (req, res) => loginUser(req, res, 'doctor');
 export const adminLogin = (req, res) => loginUser(req, res, 'admin');
 
 
-export const showUsers = async (req, res) => {
+export const showDoctors = async (req, res) => {
     try {
         const users = await User.find({role:'doctor'});
         res.status(200).json(users);
@@ -90,3 +90,15 @@ export const showUsers = async (req, res) => {
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
+
+
+export const showPatients = async (req, res) => {
+    try {
+        const users = await User.find({role:'patient'});
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+}
+
