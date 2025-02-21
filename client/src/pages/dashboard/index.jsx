@@ -1,29 +1,42 @@
-import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { Outlet, useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar';
+import { useState } from "react";
+import { Layout } from "antd";
+import { Outlet, useLocation } from "react-router-dom";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 
-const Dashboard = () => {
-  const { user } = useSelector((state) => state.auth);
-  const navigate = useNavigate();
+const { Content } = Layout;
 
-  useEffect(() => {
-    // Redirect to role-specific dashboard
-    if (user?.role) {
-      navigate(`/dashboard/${user.role}`, { replace: true });
-    }
-  }, [user, navigate]);
+const DashboardLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const role = location.pathname.split("/")[2] || "patient"; // Default to patient if no role in URL
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar />
-      <div className="flex-1 overflow-x-hidden overflow-y-auto">
-        <main className="p-6">
+    <Layout>
+      <Sidebar role={role} collapsed={collapsed} />
+      <Layout
+        style={{
+          marginLeft: collapsed ? 80 : 260,
+          minHeight: "100vh",
+          transition: "all 0.2s",
+        }}
+      >
+        <Navbar collapsed={collapsed} setCollapsed={setCollapsed} />
+        <Content
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            background: "#fff",
+            borderRadius: 8,
+            minHeight: "calc(100vh - 112px)", // 64px header + 24px * 2 margin
+            overflow: "auto",
+          }}
+        >
           <Outlet />
-        </main>
-      </div>
-    </div>
+        </Content>
+      </Layout>
+    </Layout>
   );
 };
 
-export default Dashboard; 
+export default DashboardLayout;

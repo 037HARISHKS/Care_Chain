@@ -1,75 +1,264 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useState } from "react";
+import { Layout, Menu } from "antd";
+import { Link, useLocation } from "react-router-dom";
+import {
+  DashboardOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  MessageOutlined,
+  SettingOutlined,
+  FileTextOutlined,
+  TeamOutlined,
+  DollarOutlined,
+  BellOutlined,
+  MedicineBoxOutlined,
+  BarChartOutlined,
+  ClockCircleOutlined,
+  ProfileOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
+import {
+  FaUserMd,
+  FaHospital,
+  FaFileMedical,
+  FaUserInjured,
+} from "react-icons/fa";
 
-const Sidebar = () => {
+const { Sider } = Layout;
+
+const Sidebar = ({ role, collapsed }) => {
   const location = useLocation();
-  const { user } = useSelector((state) => state.auth);
 
-  const menuItems = {
-    patient: [
-      { path: '/dashboard/patient', icon: '📊', label: 'Dashboard' },
-      { path: '/appointments', icon: '📅', label: 'Appointments' },
-      { path: '/chat', icon: '💬', label: 'Messages' },
-      { path: '/profile', icon: '👤', label: 'Profile' },
-    ],
-    doctor: [
-      { path: '/dashboard/doctor', icon: '📊', label: 'Dashboard' },
-      { path: '/appointments', icon: '📅', label: 'Appointments' },
-      { path: '/patients', icon: '👥', label: 'Patients' },
-      { path: '/chat', icon: '💬', label: 'Messages' },
-      { path: '/profile', icon: '👤', label: 'Profile' },
-    ],
-    admin: [
-      { path: '/dashboard/admin', icon: '📊', label: 'Dashboard' },
-      { path: '/users', icon: '👥', label: 'Users' },
-      { path: '/doctors', icon: '👨‍⚕️', label: 'Doctors' },
-      { path: '/settings', icon: '⚙️', label: 'Settings' },
-    ],
+  const adminMenuItems = [
+    {
+      key: "dashboard",
+      icon: <DashboardOutlined />,
+      label: <Link to="/dashboard/admin">Dashboard</Link>,
+    },
+    {
+      key: "user-management",
+      icon: <TeamOutlined />,
+      label: "User Management",
+      children: [
+        {
+          key: "doctors",
+          icon: <FaUserMd />,
+          label: <Link to="/dashboard/admin/doctors">Doctors</Link>,
+        },
+        {
+          key: "patients",
+          icon: <FaUserInjured />,
+          label: <Link to="/dashboard/admin/patients">Patients</Link>,
+        },
+      ],
+    },
+    {
+      key: "appointments",
+      icon: <CalendarOutlined />,
+      label: <Link to="/dashboard/admin/appointments">Appointments</Link>,
+    },
+    {
+      key: "applications",
+      icon: <FileTextOutlined />,
+      label: <Link to="/dashboard/admin/applications">Applications</Link>,
+    },
+    {
+      key: "reports",
+      icon: <BarChartOutlined />,
+      label: "Reports",
+      children: [
+        {
+          key: "revenue",
+          icon: <DollarOutlined />,
+          label: <Link to="/dashboard/admin/reports/revenue">Revenue</Link>,
+        },
+        {
+          key: "analytics",
+          icon: <BarChartOutlined />,
+          label: <Link to="/dashboard/admin/reports/analytics">Analytics</Link>,
+        },
+      ],
+    },
+    {
+      key: "settings",
+      icon: <SettingOutlined />,
+      label: <Link to="/dashboard/admin/settings">Settings</Link>,
+    },
+  ];
+
+  const doctorMenuItems = [
+    {
+      key: "dashboard",
+      icon: <DashboardOutlined />,
+      label: <Link to="/dashboard/doctor">Dashboard</Link>,
+    },
+    {
+      key: "appointments",
+      icon: <CalendarOutlined />,
+      label: "Appointments",
+      children: [
+        {
+          key: "upcoming",
+          icon: <ClockCircleOutlined />,
+          label: (
+            <Link to="/dashboard/doctor/appointments/upcoming">Upcoming</Link>
+          ),
+        },
+        {
+          key: "completed",
+          icon: <CheckCircleOutlined />,
+          label: (
+            <Link to="/dashboard/doctor/appointments/completed">Completed</Link>
+          ),
+        },
+      ],
+    },
+    {
+      key: "patients",
+      icon: <FaUserInjured />,
+      label: "Patients",
+      children: [
+        {
+          key: "my-patients",
+          icon: <TeamOutlined />,
+          label: <Link to="/dashboard/doctor/patients">My Patients</Link>,
+        },
+        {
+          key: "applications",
+          icon: <FileTextOutlined />,
+          label: <Link to="/dashboard/doctor/applications">Applications</Link>,
+        },
+      ],
+    },
+    {
+      key: "schedule",
+      icon: <CalendarOutlined />,
+      label: <Link to="/dashboard/doctor/schedule">Schedule</Link>,
+    },
+    {
+      key: "messages",
+      icon: <MessageOutlined />,
+      label: <Link to="/dashboard/doctor/messages">Messages</Link>,
+    },
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: <Link to="/dashboard/doctor/profile">Profile</Link>,
+    },
+  ];
+
+  const patientMenuItems = [
+    {
+      key: "dashboard",
+      icon: <DashboardOutlined />,
+      label: <Link to="/dashboard/patient">Dashboard</Link>,
+    },
+    {
+      key: "appointments",
+      icon: <CalendarOutlined />,
+      label: "Appointments",
+      children: [
+        {
+          key: "book",
+          icon: <FaHospital />,
+          label: (
+            <Link to="/dashboard/patient/appointments/book">Book New</Link>
+          ),
+        },
+        {
+          key: "upcoming",
+          icon: <ClockCircleOutlined />,
+          label: (
+            <Link to="/dashboard/patient/appointments/upcoming">Upcoming</Link>
+          ),
+        },
+        {
+          key: "history",
+          icon: <ProfileOutlined />,
+          label: (
+            <Link to="/dashboard/patient/appointments/history">History</Link>
+          ),
+        },
+      ],
+    },
+    {
+      key: "applications",
+      icon: <FileTextOutlined />,
+      label: <Link to="/dashboard/patient/applications">Applications</Link>,
+    },
+    {
+      key: "medical-records",
+      icon: <FaFileMedical />,
+      label: <Link to="/dashboard/patient/records">Medical Records</Link>,
+    },
+    {
+      key: "messages",
+      icon: <MessageOutlined />,
+      label: <Link to="/dashboard/patient/messages">Messages</Link>,
+    },
+    {
+      key: "notifications",
+      icon: <BellOutlined />,
+      label: <Link to="/dashboard/patient/notifications">Notifications</Link>,
+    },
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: <Link to="/dashboard/patient/profile">Profile</Link>,
+    },
+  ];
+
+  const getMenuItems = () => {
+    switch (role) {
+      case "admin":
+        return adminMenuItems;
+      case "doctor":
+        return doctorMenuItems;
+      case "patient":
+        return patientMenuItems;
+      default:
+        return [];
+    }
   };
 
-  const currentMenuItems = menuItems[user?.role] || [];
-
   return (
-    <div className="w-64 bg-white dark:bg-gray-800 h-full shadow-lg">
-      <div className="flex flex-col h-full">
-        <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700">
-          <span className="text-xl font-semibold text-gray-800 dark:text-white">
-            Healthcare System
-          </span>
-        </div>
-
-        <nav className="flex-1 overflow-y-auto">
-          <ul className="p-4 space-y-2">
-            {currentMenuItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                    location.pathname === item.path
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
-                      : ''
-                  }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => {/* Add logout logic */}}
-          >
-            <span className="mr-3">🚪</span>
-            <span>Logout</span>
-          </button>
-        </div>
+    <Sider
+      collapsed={collapsed}
+      width={260}
+      style={{
+        overflow: "auto",
+        height: "100vh",
+        position: "fixed",
+        left: 0,
+        top: 0,
+        bottom: 0,
+      }}
+      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+    >
+      <div className="p-4">
+        <Link to="/" className="flex items-center justify-center">
+          <FaHospital className="text-2xl text-blue-500" />
+          {!collapsed && (
+            <span className="ml-2 text-lg font-semibold text-gray-800 dark:text-white">
+              CareChain
+            </span>
+          )}
+        </Link>
       </div>
-    </div>
+      <Menu
+        mode="inline"
+        defaultSelectedKeys={[location.pathname.split("/").pop()]}
+        defaultOpenKeys={[
+          "appointments",
+          "patients",
+          "user-management",
+          "reports",
+        ]}
+        items={getMenuItems()}
+        className="border-r-0 h-[calc(100vh-80px)]"
+      />
+    </Sider>
   );
 };
 
-export default Sidebar; 
+export default Sidebar;
