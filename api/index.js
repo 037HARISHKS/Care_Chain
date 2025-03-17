@@ -12,7 +12,12 @@ import authRoutes from "./routes/auth.route.js";
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
 app.use(cookieParser());
 app.use(express.json());
 
@@ -24,11 +29,20 @@ mongoose.connect(process.env.MONGODB_URI)
         console.log('Cant Connect to MongoDB', err);
     });
 
+app.get('/test', (req, res) => {
+    res.json({ message: 'Backend is working!' });
+});
+
 app.use('/api/auth', authRoutes);
 // app.use('/api/doctor', doctorRoutes);
 // app.use('/api/patient', patientRoutes);
 // app.use('/api/appointment', appointmentRoutes);
 // app.use('/api/admin', adminRoutes);
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something broke!', error: err.message });
+});
 
 const PORT = process.env.PORT || 8800;
 app.listen(PORT, () => {

@@ -55,19 +55,18 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match!");
       return;
     }
 
     try {
-      const endpoint = `/api/auth/${formData.role}/register`;
-      const response = await fetch(endpoint, {
-        method: "POST",
+      const response = await fetch('/api/auth/' + formData.role + '/register', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
@@ -75,28 +74,31 @@ const Register = () => {
           phone: formData.phone,
           address: formData.address,
           dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender,
-        emergencyContact: formData.emergencyContact,
-        insuranceDetails: formData.insuranceDetails,
-        // Doctor specific fields
-        specialization: formData.specialization,
-        experience: formData.experience,
-        clinicAddress: formData.clinicAddress,
-        consultationFee: formData.consultationFee,
-        education: formData.education,
-        license: formData.license,
-        profilePicture: formData.profilePicture,
-      })
-      })
+          gender: formData.gender,
+          emergencyContact: formData.emergencyContact,
+          insuranceDetails: formData.insuranceDetails,
+          specialization: formData.specialization,
+          experience: formData.experience,
+          clinicAddress: formData.clinicAddress,
+          consultationFee: formData.consultationFee,
+          education: formData.education,
+          license: formData.license,
+          profilePicture: formData.profilePicture,
+        })
+      });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      console.log('Registration successful:', data);
       toast.success("Registration successful! Please login.");
       navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error(
-        error.response?.data?.message ||
-          "Registration failed. Please try again."
-      );
+      toast.error(error.message || "Registration failed. Please try again.");
     }
   };
 
