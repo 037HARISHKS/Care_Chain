@@ -1,7 +1,6 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { AuthProvider } from "./context/AuthContext";
-import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import LandingPage from "./pages/LandingPage";
@@ -16,39 +15,36 @@ import DoctorProfile from "./pages/profile/DoctorProfile";
 import Appointments from "./pages/appointments";
 import Chat from "./pages/chat";
 
-const queryClient = new QueryClient();
+
 
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+    
+      <Router>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-              {/* Protected Routes */}
-                <Route path="/dashboard" element={<Dashboard />}>
-                  <Route path="patient" element={<PatientDashboard />} />
-                  <Route path="doctor" element={<DoctorDashboard />} />
-                  <Route path="admin" element={<AdminDashboard />} />
-                </Route>
-                <Route path="/profile">
-                  <Route path="patient" element={<PatientProfile />} />
-                  <Route path="doctor" element={<DoctorProfile />} />
-                </Route>
-                <Route path="/appointments" element={<Appointments />} />
-                <Route path="/chat" element={<Chat />} />
-              
-            </Routes>
-            <Footer />
-          </div>
-        </Router>
-      </QueryClientProvider>
-    </AuthProvider>
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={<Dashboard />}>
+              <Route path="patient" element={<PatientDashboard />} />
+              <Route path="doctor" element={<DoctorDashboard />} />
+              <Route path="admin" element={<AdminDashboard />} />
+            </Route>
+            <Route path="/profile">
+              <Route path="patient" element={<PatientProfile />} />
+              <Route path="doctor" element={<DoctorProfile />} />
+            </Route>
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/chat" element={<Chat />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
+    
   );
 }
 

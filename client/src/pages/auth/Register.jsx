@@ -13,6 +13,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { toast } from "react-toastify";
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../../store/slices/authSlice';
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -40,6 +43,7 @@ const Register = () => {
   });
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -93,7 +97,7 @@ const Register = () => {
       }
 
       const data = await response.json();
-      console.log('Registration successful:', data);
+      dispatch(loginSuccess({ user: data.user, token: data.token }));
       toast.success("Registration successful! Please login.");
       navigate("/login");
     } catch (error) {
