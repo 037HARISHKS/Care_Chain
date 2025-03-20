@@ -15,6 +15,11 @@ import PatientProfile from "./pages/profile/PatientProfile";
 import DoctorProfile from "./pages/profile/DoctorProfile";
 import Appointments from "./pages/appointments";
 import Chat from "./pages/chat";
+import AppointmentForm from "./pages/patient/AppointmentForm";
+import HistoryPatient from "./pages/patient/HistoryPatient";
+import UpcomingRequests from "./pages/patient/UpcomingRequests";
+import AdminForDoctor from "./pages/admin/AdminForDoctor";
+import AdminForPatient from "./pages/admin/AdminForPatient";
 
 const queryClient = new QueryClient();
 
@@ -31,20 +36,27 @@ function App() {
               <Route path="/register" element={<Register />} />
 
               {/* Protected Routes */}
-                <Route path="/dashboard" element={<Dashboard />}>
-                  <Route path="patient" element={<PatientDashboard />} />
-                  <Route path="doctor" element={<DoctorDashboard />} />
-                  <Route path="admin" element={<AdminDashboard />} />
-                </Route>
-                <Route path="/profile">
-                  <Route path="patient" element={<PatientProfile />} />
-                  <Route path="doctor" element={<DoctorProfile />} />
-                </Route>
-                <Route path="/appointments" element={<Appointments />} />
-                <Route path="/chat" element={<Chat />} />
+              <Route path="/dashboard" element={<Dashboard />}>
+                <Route path="patient" element={<PatientDashboard />} />
+                <Route path="patient/history" element={<HistoryPatient />} />
+                <Route path="patient/upcoming" element={<UpcomingRequests />} />
+                <Route path="patient/book" element={<AppointmentForm />} />
+                <Route path="doctor" element={<DoctorDashboard />} />
+                <Route path="admin" element={<AdminDashboard />} />
+                <Route path="admin/doctors" element={<AdminForDoctor/>} />
+                <Route path="admin/patients" element={<AdminForPatient />} />
+              </Route>
+
               
+              <Route path="/profile">
+                <Route path="patient" element={<PatientProfile />} />
+                <Route path="doctor" element={<DoctorProfile />} />
+              </Route>
+
+              <Route path="/appointments" element={<Appointments />} />
+              <Route path="/chat" element={<Chat />} />
+
             </Routes>
-            <Footer />
           </div>
         </Router>
       </QueryClientProvider>

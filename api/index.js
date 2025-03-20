@@ -4,8 +4,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
-// import doctorRoutes from "./routes/doctor.route.js";
-// import patientRoutes from "./routes/patient.route.js";
+import doctorRoutes from "./routes/doctor.route.js";
+import patientRoutes from "./routes/patient.route.js";
 // import appointmentRoutes from "./routes/appointment.route.js";
 // import adminRoutes from "./routes/admin.route.js";
 
@@ -34,8 +34,8 @@ app.get('/test', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-// app.use('/api/doctor', doctorRoutes);
-// app.use('/api/patient', patientRoutes);
+app.use('/api/doctor', doctorRoutes);
+app.use('/api/patient', patientRoutes);
 // app.use('/api/appointment', appointmentRoutes);
 // app.use('/api/admin', adminRoutes);
 

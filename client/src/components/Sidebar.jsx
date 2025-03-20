@@ -162,21 +162,21 @@ const Sidebar = ({ role, collapsed }) => {
           key: "book",
           icon: <FaHospital />,
           label: (
-            <Link to="/dashboard/patient/appointments/book">Book New</Link>
+            <Link to="/dashboard/patient/book">Book New</Link>
           ),
         },
         {
           key: "upcoming",
           icon: <ClockCircleOutlined />,
           label: (
-            <Link to="/dashboard/patient/appointments/upcoming">Upcoming</Link>
+            <Link to="/dashboard/patient/upcoming">Upcoming</Link>
           ),
         },
         {
           key: "history",
           icon: <ProfileOutlined />,
           label: (
-            <Link to="/dashboard/patient/appointments/history">History</Link>
+            <Link to="/dashboard/patient/history">History</Link>
           ),
         },
       ],

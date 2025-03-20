@@ -82,20 +82,7 @@ const userSchema = new mongoose.Schema({
     institution: String,
     year: Number,
   }],
-  // availability: [{
-  //   day: {
-  //     type: String,
-  //     enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-  //   },
-  //   slots: [{
-  //     startTime: String,
-  //     endTime: String,
-  //     isBooked: {
-  //       type: Boolean,
-  //       default: false,
-  //     },
-  //   }],
-  // }],
+
   ratings: [{
     rating: {
       type: Number,
@@ -133,26 +120,26 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Pre-save middleware to hash password
-userSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  this.updatedAt = Date.now();
-  next();
-});
+// // Pre-save middleware to hash password
+// userSchema.pre('save', async function(next) {
+//   if (this.isModified('password')) {
+//     this.password = await bcrypt.hash(this.password, 10);
+//   }
+//   this.updatedAt = Date.now();
+//   next();
+// });
 
-// Method to compare password
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
+// // Method to compare password
+// userSchema.methods.comparePassword = async function(candidatePassword) {
+//   return bcrypt.compare(candidatePassword, this.password);
+// };
 
-// Method to calculate average rating
-userSchema.methods.calculateAverageRating = function() {
-  if (this.ratings.length === 0) return 0;
-  const sum = this.ratings.reduce((acc, curr) => acc + curr.rating, 0);
-  return sum / this.ratings.length;
-};
+// // Method to calculate average rating
+// userSchema.methods.calculateAverageRating = function() {
+//   if (this.ratings.length === 0) return 0;
+//   const sum = this.ratings.reduce((acc, curr) => acc + curr.rating, 0);
+//   return sum / this.ratings.length;
+// };
 
 const User = mongoose.model('User', userSchema);
 
