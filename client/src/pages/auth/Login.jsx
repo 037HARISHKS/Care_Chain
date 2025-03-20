@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button, TextInput, Label, Alert, Select } from "flowbite-react";
-import { useAuth } from "../../context/AuthContext";
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../../store/slices/authSlice';
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +16,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({
@@ -29,7 +31,22 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await login(formData);
+      const response = await fetch(`/api/auth/${formData.role}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+
+      const data = await response.json();
+      dispatch(loginSuccess({ user: data.user, token: data.token }));
+      toast.success("Login successful!");
       navigate(`/dashboard/${formData.role}`);
     } catch (err) {
       setError(err.message || "Login failed");

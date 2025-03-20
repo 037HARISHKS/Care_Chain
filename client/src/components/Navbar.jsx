@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../store/slices/authSlice";
 import {
   Layout,
   Menu,
@@ -29,12 +30,15 @@ const { Header } = Layout;
 const { Text } = Typography;
 
 const Navbar = ({ collapsed, setCollapsed }) => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Get user and auth state from Redux store
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate("/login");
   };
 
@@ -43,16 +47,19 @@ const Navbar = ({ collapsed, setCollapsed }) => {
       key: "profile",
       icon: <UserOutlined />,
       label: "Profile",
+      onClick: () => navigate(`/profile/${user?.role}`),
     },
     {
       key: "dashboard",
       icon: <DashboardOutlined />,
       label: "Dashboard",
+      onClick: () => navigate(`/dashboard/${user?.role}`),
     },
     {
       key: "settings",
       icon: <SettingOutlined />,
       label: "Settings",
+      onClick: () => navigate("/settings"),
     },
     {
       type: "divider",
@@ -62,27 +69,9 @@ const Navbar = ({ collapsed, setCollapsed }) => {
       icon: <LogoutOutlined />,
       label: "Sign Out",
       danger: true,
+      onClick: handleLogout,
     },
   ];
-
-  const handleMenuClick = ({ key }) => {
-    switch (key) {
-      case "profile":
-        navigate(`/profile/${user?.role}`);
-        break;
-      case "dashboard":
-        navigate(`/dashboard/${user?.role}`);
-        break;
-      case "settings":
-        navigate("/settings");
-        break;
-      case "logout":
-        handleLogout();
-        break;
-      default:
-        break;
-    }
-  };
 
   const notificationItems = [
     {
@@ -149,14 +138,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
 
           {isAuthenticated ? (
             <Space size="large">
-              <Dropdown
-                menu={{
-                  items: notificationItems,
-                  onClick: handleMenuClick,
-                }}
-                placement="bottomRight"
-                arrow
-              >
+              <Dropdown menu={{ items: notificationItems }} placement="bottomRight" arrow>
                 <Badge count={2} className="cursor-pointer">
                   <Avatar
                     icon={<BellOutlined />}
@@ -165,18 +147,8 @@ const Navbar = ({ collapsed, setCollapsed }) => {
                 </Badge>
               </Dropdown>
 
-              <Dropdown
-                menu={{
-                  items: userMenuItems,
-                  onClick: handleMenuClick,
-                }}
-                placement="bottomRight"
-                arrow
-              >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Space className="cursor-pointer">
                     <Avatar
                       src={user?.avatar}
@@ -186,8 +158,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
                     <div className="hidden md:flex flex-col">
                       <Text strong>{user?.fullName || "User Name"}</Text>
                       <Text type="secondary" className="text-xs">
-                        {user?.role?.charAt(0).toUpperCase() +
-                          user?.role?.slice(1)}
+                        {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
                       </Text>
                     </div>
                   </Space>
