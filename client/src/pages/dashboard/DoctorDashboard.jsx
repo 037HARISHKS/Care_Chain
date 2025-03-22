@@ -71,7 +71,7 @@ const DoctorDashboard = () => {
         fetch(`/api/appointments/doctor/upcoming/${currentUser.id}`, {
           headers,
         }),
-        fetch(`/api/messages/doctor/${currentUser._id}`, { headers }),
+        fetch(`/api/messages/doctor/${currentUser.id}`, { headers }),
       ]);
 
       if (

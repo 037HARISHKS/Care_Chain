@@ -86,7 +86,7 @@ const UpcomingRequests = () => {
   const handleRejectAppointment = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/appointments/${id}/reject`, {
+      const response = await fetch(`/api/appointments/reject/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

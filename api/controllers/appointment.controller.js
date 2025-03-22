@@ -307,22 +307,14 @@ export const approveAppointment = async (req, res) => {
 // Reject appointment
 export const rejectAppointment = async (req, res) => {
     try {
-        const { reason } = req.body;
-        if (!reason) {
-            return res.status(400).json({ message: 'Rejection reason is required' });
-        }
-
         const appointment = await Application.findById(req.params.id);
-        
+    
         if (!appointment) {
             return res.status(404).json({ message: 'Appointment not found' });
         }
 
-        if (appointment.doctorId.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Not authorized' });
-        }
-
-        await appointment.reject(req.user.id, reason);
+        appointment.status = 'cancelled';
+        await appointment.save();
         
         res.status(200).json({
             message: 'Appointment rejected successfully',
@@ -480,7 +472,7 @@ export const getUpcomingAppointmentsDoctor = async (req, res) => {
 
 export const getDoctorAppointmentsHistory = async (req, res) => {
     try {
-        const appointments = await Application.find({ doctorId: req.params.id, status: 'completed' }).populate('patientId', 'name');
+        const appointments = await Application.find({ doctorId: req.params.id, status: { $in: ['completed', 'cancelled'] } }).populate('patientId', 'name');
         res.status(200).json(appointments);
     } catch (error) {
         res.status(500).json({
