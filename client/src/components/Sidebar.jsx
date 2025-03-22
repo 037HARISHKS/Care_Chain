@@ -88,11 +88,6 @@ const Sidebar = ({ role, collapsed }) => {
 
   const doctorMenuItems = [
     {
-      key: "dashboard",
-      icon: <DashboardOutlined />,
-      label: <Link to="/dashboard/doctor">Dashboard</Link>,
-    },
-    {
       key: "appointments",
       icon: <CalendarOutlined />,
       label: "Appointments",
@@ -101,45 +96,35 @@ const Sidebar = ({ role, collapsed }) => {
           key: "upcoming",
           icon: <ClockCircleOutlined />,
           label: (
-            <Link to="/dashboard/doctor/appointments/upcoming">Upcoming</Link>
+            <Link to="/dashboard/doctor/upcoming">Upcoming</Link>
           ),
         },
         {
           key: "completed",
           icon: <CheckCircleOutlined />,
           label: (
-            <Link to="/dashboard/doctor/appointments/completed">Completed</Link>
+            <Link to="/dashboard/doctor/completed">Completed</Link>
           ),
         },
       ],
     },
-    {
-      key: "patients",
-      icon: <FaUserInjured />,
-      label: "Patients",
-      children: [
-        {
-          key: "my-patients",
-          icon: <TeamOutlined />,
-          label: <Link to="/dashboard/doctor/patients">My Patients</Link>,
-        },
-        {
-          key: "applications",
-          icon: <FileTextOutlined />,
-          label: <Link to="/dashboard/doctor/applications">Applications</Link>,
-        },
-      ],
-    },
-    {
-      key: "schedule",
-      icon: <CalendarOutlined />,
-      label: <Link to="/dashboard/doctor/schedule">Schedule</Link>,
-    },
-    {
-      key: "messages",
-      icon: <MessageOutlined />,
-      label: <Link to="/dashboard/doctor/messages">Messages</Link>,
-    },
+    // {
+    //   key: "patients",
+    //   icon: <FaUserInjured />,
+    //   label: "Patients",
+    //   children: [
+    //     {
+    //       key: "my-patients",
+    //       icon: <TeamOutlined />,
+    //       label: <Link to="/dashboard/doctor/patients">My Patients</Link>,
+    //     },
+    //     {
+    //       key: "applications",
+    //       icon: <FileTextOutlined />,
+    //       label: <Link to="/dashboard/doctor/applications">Applications</Link>,
+    //     },
+    //   ],
+    // },
     {
       key: "profile",
       icon: <UserOutlined />,
@@ -176,36 +161,16 @@ const Sidebar = ({ role, collapsed }) => {
           key: "history",
           icon: <ProfileOutlined />,
           label: (
-            <Link to="/dashboard/patient/history">History</Link>
+            <Link to="/dashboard/patient/history">Completed</Link>
           ),
         },
       ],
     },
     {
-      key: "applications",
-      icon: <FileTextOutlined />,
-      label: <Link to="/dashboard/patient/applications">Applications</Link>,
-    },
-    {
       key: "medical-records",
       icon: <FaFileMedical />,
       label: <Link to="/dashboard/patient/records">Medical Records</Link>,
-    },
-    {
-      key: "messages",
-      icon: <MessageOutlined />,
-      label: <Link to="/dashboard/patient/messages">Messages</Link>,
-    },
-    {
-      key: "notifications",
-      icon: <BellOutlined />,
-      label: <Link to="/dashboard/patient/notifications">Notifications</Link>,
-    },
-    {
-      key: "profile",
-      icon: <UserOutlined />,
-      label: <Link to="/dashboard/patient/profile">Profile</Link>,
-    },
+    }
   ];
 
   const getMenuItems = () => {
@@ -233,7 +198,7 @@ const Sidebar = ({ role, collapsed }) => {
         top: 0,
         bottom: 0,
       }}
-      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+      className="bg-black dark:bg-green-800 border-r  border-gray-200 dark:border-gray-700"
     >
       <div className="p-4">
         <Link to="/" className="flex items-center justify-center">
@@ -255,7 +220,7 @@ const Sidebar = ({ role, collapsed }) => {
           "reports",
         ]}
         items={getMenuItems()}
-        className="border-r-0 h-[calc(100vh-80px)]"
+        className="border-r-0 mt-3 h-[calc(100vh-80px)]"
       />
     </Sider>
   );

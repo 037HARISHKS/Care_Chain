@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Card, Table, Tag, Avatar, Button, message } from "antd";
 import { UserOutlined, CalendarOutlined } from "@ant-design/icons";
 import { FaFileMedical } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
-const HistoryPatient = () => {
+const AppointmentHistory = () => {
   const [loading, setLoading] = useState(false);
   const [applications, setApplications] = useState([]);
+  const currentUser = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     fetchApplicationHistory();
@@ -14,28 +16,19 @@ const HistoryPatient = () => {
   const fetchApplicationHistory = async () => {
     setLoading(true);
     try {
-      // Replace with actual API endpoint
-      const response = await fetch("/api/appointments/history");
-      const data = await response.json();
+      const token = localStorage.getItem("token");
+      const endpoint =
+        currentUser.role === "doctor"
+          ? `/api/appointments/doctor/history/${currentUser.id}`
+          : `/api/appointments/patient/history/${currentUser.id}`;
 
-      // Static data for development
-      setApplications([
-        {
-          id: 1,
-          doctor: "Dr. Michael Brown",
-          problem: "Regular check-up",
-          date: "2024-02-19",
-          status: "completed",
+      const response = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          id: 2,
-          doctor: "Dr. Sarah Johnson",
-          problem: "Fever and cold",
-          date: "2024-02-15",
-          status: "cancelled",
-        },
-        // Add more static data as needed
-      ]);
+      });
+      const data = await response.json();
+      setApplications(data);
     } catch (error) {
       message.error("Failed to fetch appointment history");
     } finally {
@@ -43,15 +36,16 @@ const HistoryPatient = () => {
     }
   };
 
-  const columns = [
+  // Patient view columns
+  const patientColumns = [
     {
       title: "Doctor",
-      dataIndex: "doctor",
+      dataIndex: "doctorId",
       key: "doctor",
-      render: (text) => (
+      render: (doctor) => (
         <div className="flex items-center">
           <Avatar icon={<UserOutlined />} className="mr-2" />
-          {text}
+          {doctor?.name}
         </div>
       ),
     },
@@ -67,8 +61,28 @@ const HistoryPatient = () => {
       render: (text) => (
         <span>
           <CalendarOutlined className="mr-2" />
-          {text}
+          {new Date(text).toLocaleDateString()}
         </span>
+      ),
+    },
+    {
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (type) => (
+        <Tag
+          color={
+            type === "consultation"
+              ? "blue"
+              : type === "follow-up"
+              ? "green"
+              : type === "emergency"
+              ? "red"
+              : "orange"
+          }
+        >
+          {type.toUpperCase()}
+        </Tag>
       ),
     },
     {
@@ -97,7 +111,106 @@ const HistoryPatient = () => {
           type="primary"
           size="small"
           icon={<FaFileMedical className="mr-1" />}
-          onClick={() => handleViewDetails(record.id)}
+          onClick={() => handleViewDetails(record._id)}
+        >
+          View Details
+        </Button>
+      ),
+    },
+  ];
+
+  // Doctor view columns
+  const doctorColumns = [
+    {
+      title: "Patient",
+      dataIndex: "patientId",
+      key: "patient",
+      render: (patient) => (
+        <div className="flex items-center">
+          <Avatar icon={<UserOutlined />} className="mr-2" />
+          {patient?.name || "Anonymous"}
+        </div>
+      ),
+    },
+    {
+      title: "Problem",
+      dataIndex: "problem",
+      key: "problem",
+    },
+    {
+      title: "Symptoms",
+      dataIndex: "symptoms",
+      key: "symptoms",
+      render: (symptoms) => (
+        <div>
+          {symptoms?.map((symptom, index) => (
+            <Tag key={index} color="blue" className="mb-1">
+              {Array.isArray(symptom)
+                ? symptom.map((s, i) => <span key={i}>{s}</span>)
+                : symptom}
+            </Tag>
+          ))}
+        </div>
+      ),
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      render: (text) => (
+        <span>
+          <CalendarOutlined className="mr-2" />
+          {new Date(text).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (type) => (
+        <Tag
+          color={
+            type === "consultation"
+              ? "blue"
+              : type === "follow-up"
+              ? "green"
+              : type === "emergency"
+              ? "red"
+              : "orange"
+          }
+        >
+          {type.toUpperCase()}
+        </Tag>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag
+          color={
+            status === "completed"
+              ? "success"
+              : status === "cancelled"
+              ? "error"
+              : "warning"
+          }
+        >
+          {status.toUpperCase()}
+        </Tag>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<FaFileMedical className="mr-1" />}
+          onClick={() => handleViewDetails(record._id)}
         >
           View Details
         </Button>
@@ -116,15 +229,21 @@ const HistoryPatient = () => {
         title={
           <div className="flex items-center">
             <FaFileMedical className="mr-2 text-purple-500" />
-            <span>Appointment History</span>
+            <span>
+              {currentUser.role === "doctor"
+                ? "Patient History"
+                : "Appointment History"}
+            </span>
           </div>
         }
       >
         <Table
-          columns={columns}
+          columns={
+            currentUser.role === "doctor" ? doctorColumns : patientColumns
+          }
           dataSource={applications}
           loading={loading}
-          rowKey="id"
+          rowKey="_id"
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -136,4 +255,4 @@ const HistoryPatient = () => {
   );
 };
 
-export default HistoryPatient;
+export default AppointmentHistory;

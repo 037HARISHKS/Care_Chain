@@ -68,15 +68,7 @@ const PatientDashboard = () => {
       },
     ]);
 
-    setApplications([
-      {
-        id: 1,
-        doctor: "Dr. Michael Brown",
-        problem: "Regular check-up",
-        date: "2024-02-19",
-        status: "pending",
-      },
-    ]);
+    
 
     setAppointments([
       {

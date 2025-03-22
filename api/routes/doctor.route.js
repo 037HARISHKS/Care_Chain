@@ -1,8 +1,9 @@
 import express from 'express';
 const router = express.Router();
-import { getDoctors } from '../controllers/doctor.controller.js';
+import { getDoctors, updateDoctor } from '../controllers/doctor.controller.js';
 
+router.get('/', getDoctors);
+router.put('/update/:id', updateDoctor);
 
-router.get('/',getDoctors);
 export default router;
 

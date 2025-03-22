@@ -1,51 +1,94 @@
 import Application from '../models/application.model.js';
 import User from '../models/user.model.js';
 import mongoose from 'mongoose';
+import upload from '../utils/fileUpload.js';
 
 // Create new appointment application
 export const createAppointment = async (req, res) => {
+    console.log("req.body Ev", req.body);
     try {
-        const {
-            doctorId,
-            problem,
-            symptoms,
-            medicalHistory,
-            preferredDate,
-            preferredTime,
-            priority,
-            notes,
-            attachments
-        } = req.body;
+        // Handle file uploads
+        upload.array('attachments', 5)(req, res, async (err) => {
+            if (err) {
+                return res.status(400).json({ message: err.message });
+            }
 
-        // Validate doctor exists
-        const doctor = await User.findOne({ _id: doctorId, role: 'doctor' });
-        if (!doctor) {
-            return res.status(404).json({ message: 'Doctor not found' });
-        }
+            // Get uploaded files
+            const files = req.files || [];
+            
+            // Create file references array according to the model structure
+            const attachments = files.map(file => ({
+                filename: file.filename,
+                originalname: file.originalname,
+                path: file.path,
+                size: file.size,
+                mimetype: file.mimetype
+            }));
 
-        // Create appointment application
-        const appointment = await Application.create({
-            patientId: req.user.id, // From auth middleware
-            doctorId,
-            problem,
-            symptoms: Array.isArray(symptoms) ? symptoms : [symptoms],
-            medicalHistory,
-            preferredDate: new Date(preferredDate),
-            preferredTime,
-            priority: priority || 'medium',
-            notes,
-            attachments: attachments || [],
-            notifications: [{
-                type: 'submitted',
-                message: 'Application submitted successfully'
-            }]
+            const {
+                doctorId,
+                problem,
+                symptoms,
+                date,
+                time,
+                type,
+                duration,
+                followUpNeeded,
+                paymentAmount,
+                notes,
+                patientId
+            } = req.body;
+
+            // Validate doctor exists
+            const doctor = await User.findOne({ _id: doctorId, role: 'doctor' });
+            if (!doctor) {
+                return res.status(404).json({ message: 'Doctor not found' });
+            }
+
+            // Check for conflicting appointments within 15 minutes
+            const appointmentDate = new Date(date);
+            const appointmentTime = parseInt(time.split(':')[0]) * 60 + parseInt(time.split(':')[1]);
+            
+            const existingAppointments = await Application.find({
+                doctorId,
+                date: appointmentDate,
+                status: 'scheduled'
+            });
+
+            for (const existing of existingAppointments) {
+                const existingTime = parseInt(existing.time.split(':')[0]) * 60 + parseInt(existing.time.split(':')[1]);
+                const timeDiff = Math.abs(appointmentTime - existingTime);
+                
+                if (timeDiff <= 15) {
+                    return res.status(400).json({
+                        message: 'Another appointment exists within 15 minutes of this time slot'
+                    });
+                }
+            }
+
+            // Create appointment application according to the model structure
+            const appointment = await Application.create({
+                patientId,
+                doctorId,
+                date: appointmentDate,
+                time,
+                type,
+                problem,
+                symptoms: Array.isArray(symptoms) ? symptoms : [symptoms],
+                duration: parseInt(duration),
+                attachments,
+                followUpNeeded: followUpNeeded === 'true',
+                paymentAmount: parseFloat(paymentAmount),
+                paymentStatus: 'pending',
+                status: 'scheduled',
+                notes
+            });
+
+            res.status(201).json({
+                message: 'Appointment application created successfully',
+                appointment
+            });
         });
-
-        res.status(201).json({
-            message: 'Appointment application created successfully',
-            appointment
-        });
-
     } catch (error) {
         console.error('Create appointment error:', error);
         res.status(500).json({
@@ -221,8 +264,9 @@ export const getAppointmentsByDoctor = async (req, res) => {
 
 // Get patient's appointment history
 export const getPatientHistory = async (req, res) => {
+    console.log("req.params.id getPatientHistory", req.params.id);
     try {
-        const appointments = await Application.find({ patientId: req.user.id })
+        const appointments = await Application.find({ patientId: req.params.id, status:"completed" })
             .populate('doctorId', 'name specialization')
             .sort({ createdAt: -1 });
 
@@ -238,19 +282,15 @@ export const getPatientHistory = async (req, res) => {
 
 // Approve appointment
 export const approveAppointment = async (req, res) => {
+    console.log("req.params.id approveAppointment", req.params.id);
     try {
         const appointment = await Application.findById(req.params.id);
-        
+        console.log("appointment", appointment);
         if (!appointment) {
             return res.status(404).json({ message: 'Appointment not found' });
         }
-
-        if (appointment.doctorId.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Not authorized' });
-        }
-
-        await appointment.approve(req.user.id);
-        
+        appointment.status = 'completed';
+        await appointment.save();
         res.status(200).json({
             message: 'Appointment approved successfully',
             appointment
@@ -365,6 +405,86 @@ export const getDoctorSchedule = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: 'Error fetching doctor schedule',
+            error: error.message
+        });
+    }
+};
+
+// Get appointment with file URLs
+export const getAppointment = async (req, res) => {
+    try {
+        const appointment = await Application.findById(req.params.id);
+        if (!appointment) {
+            return res.status(404).json({ message: 'Appointment not found' });
+        }
+
+        // Convert file paths to URLs
+        const appointmentWithUrls = {
+            ...appointment.toObject(),
+            attachments: appointment.attachments.map(file => ({
+                ...file,
+                url: `/uploads/${file.filename}`
+            }))
+        };
+
+        res.json(appointmentWithUrls);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching appointment', error: error.message });
+    }
+};
+
+// Get upcoming appointments
+export const getUpcomingAppointments = async (req, res) => {
+    console.log("req.params.id getUpcomingAppointments", req.params.id);
+    try {
+        const appointments = await Application.find({
+            patientId: req.params.id,     
+            status: 'scheduled'
+        })
+        .populate('doctorId', 'name')
+        .sort({ date: 1, time: 1 });
+
+        res.status(200).json(appointments);
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching upcoming appointments',
+            error: error.message
+        });
+    }
+};
+
+export const getDoctorAppointments = async (req, res) => {
+    try {
+        const appointments = await Application.find({ doctorId: req.params.id });
+        res.status(200).json(appointments);
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching doctor appointments',
+            error: error.message
+        });
+    }
+};
+
+export const getUpcomingAppointmentsDoctor = async (req, res) => {
+    try {
+        const appointments = await Application.find({ doctorId: req.params.id, status: 'scheduled' })
+        .populate('patientId', 'name').sort({ date: 1, time: 1 });
+        res.status(200).json(appointments);
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching doctor appointments',
+            error: error.message
+        });
+    }
+};
+
+export const getDoctorAppointmentsHistory = async (req, res) => {
+    try {
+        const appointments = await Application.find({ doctorId: req.params.id, status: 'completed' }).populate('patientId', 'name');
+        res.status(200).json(appointments);
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching doctor appointments',
             error: error.message
         });
     }

@@ -9,6 +9,7 @@ import {
   Col,
   Typography,
   Badge,
+  Spin,
 } from "antd";
 import { motion } from "framer-motion";
 import {
@@ -27,66 +28,152 @@ import {
   FaUserInjured,
   FaCommentMedical,
 } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 const { Title, Text } = Typography;
 
 const DoctorDashboard = () => {
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     pendingApplications: 0,
     upcomingAppointments: 0,
     completedAppointments: 0,
     totalPatients: 0,
   });
-
   const [applications, setApplications] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [messages, setMessages] = useState([]);
+  const currentUser = useSelector((state) => state.auth.user);
 
   useEffect(() => {
-    // Fetch doctor dashboard data
-    setStats({
-      pendingApplications: 5,
-      upcomingAppointments: 8,
-      completedAppointments: 120,
-      totalPatients: 45,
-    });
-
-    setApplications([
-      {
-        id: 1,
-        patientName: "John Doe",
-        problem: "Chronic back pain",
-        date: "2024-02-19",
-        status: "pending",
-      },
-    ]);
-
-    setAppointments([
-      {
-        id: 1,
-        patientName: "Alice Smith",
-        date: "2024-02-20",
-        time: "10:00 AM",
-        type: "Check-up",
-        status: "confirmed",
-      },
-    ]);
-
-    setMessages([
-      {
-        id: 1,
-        from: "Bob Wilson",
-        message: "Hello Dr., I have a question about...",
-        time: "5 mins ago",
-        unread: true,
-      },
-    ]);
+    fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      // Fetch all data in parallel
+      const [
+        statsResponse,
+        applicationsResponse,
+        appointmentsResponse,
+        messagesResponse,
+      ] = await Promise.all([
+        fetch(`/api/appointments/doctor/stats/${currentUser.id}`, { headers }),
+        fetch(`/api/appointments/doctor/pending/${currentUser.id}`, {
+          headers,
+        }),
+        fetch(`/api/appointments/doctor/upcoming/${currentUser.id}`, {
+          headers,
+        }),
+        fetch(`/api/messages/doctor/${currentUser._id}`, { headers }),
+      ]);
+
+      if (
+        !statsResponse.ok ||
+        !applicationsResponse.ok ||
+        !appointmentsResponse.ok ||
+        !messagesResponse.ok
+      ) {
+        throw new Error("Failed to fetch dashboard data");
+      }
+
+      const [statsData, applicationsData, appointmentsData, messagesData] =
+        await Promise.all([
+          statsResponse.json(),
+          applicationsResponse.json(),
+          appointmentsResponse.json(),
+          messagesResponse.json(),
+        ]);
+
+      setStats(statsData);
+      setApplications(applicationsData);
+      setAppointments(appointmentsData);
+      setMessages(messagesData);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      message.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAcceptApplication = async (applicationId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `/api/appointments/${applicationId}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to accept application");
+
+      message.success("Application accepted successfully");
+      fetchDashboardData(); // Refresh data
+    } catch (error) {
+      message.error("Failed to accept application");
+    }
+  };
+
+  const handleRejectApplication = async (applicationId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `/api/appointments/${applicationId}/reject`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to reject application");
+
+      message.success("Application rejected successfully");
+      fetchDashboardData(); // Refresh data
+    } catch (error) {
+      message.error("Failed to reject application");
+    }
+  };
+
+  const handleStartSession = async (appointmentId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `/api/appointments/${appointmentId}/start-session`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to start session");
+
+      message.success("Session started successfully");
+      // Navigate to video call or session page
+      // navigate(`/session/${appointmentId}`);
+    } catch (error) {
+      message.error("Failed to start session");
+    }
+  };
 
   const applicationColumns = [
     {
       title: "Patient Name",
-      dataIndex: "patientName",
+      dataIndex: ["patientId", "name"],
       key: "patientName",
       render: (text) => (
         <div className="flex items-center">
@@ -107,7 +194,7 @@ const DoctorDashboard = () => {
       render: (text) => (
         <span>
           <CalendarOutlined className="mr-2" />
-          {text}
+          {new Date(text).toLocaleDateString()}
         </span>
       ),
     },
@@ -124,12 +211,20 @@ const DoctorDashboard = () => {
     {
       title: "Actions",
       key: "actions",
-      render: () => (
+      render: (_, record) => (
         <div className="space-x-2">
-          <Button type="primary" size="small">
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleAcceptApplication(record._id)}
+          >
             Accept
           </Button>
-          <Button danger size="small">
+          <Button
+            danger
+            size="small"
+            onClick={() => handleRejectApplication(record._id)}
+          >
             Reject
           </Button>
         </div>
@@ -140,7 +235,7 @@ const DoctorDashboard = () => {
   const appointmentColumns = [
     {
       title: "Patient",
-      dataIndex: "patientName",
+      dataIndex: ["patientId", "name"],
       key: "patientName",
       render: (text) => (
         <div className="flex items-center">
@@ -156,7 +251,7 @@ const DoctorDashboard = () => {
       render: (text, record) => (
         <span>
           <CalendarOutlined className="mr-2" />
-          {text} {record.time}
+          {new Date(text).toLocaleDateString()} {record.time}
         </span>
       ),
     },
@@ -164,6 +259,21 @@ const DoctorDashboard = () => {
       title: "Type",
       dataIndex: "type",
       key: "type",
+      render: (type) => (
+        <Tag
+          color={
+            type === "consultation"
+              ? "blue"
+              : type === "follow-up"
+              ? "green"
+              : type === "emergency"
+              ? "red"
+              : "orange"
+          }
+        >
+          {type.toUpperCase()}
+        </Tag>
+      ),
     },
     {
       title: "Status",
@@ -178,8 +288,13 @@ const DoctorDashboard = () => {
     {
       title: "Actions",
       key: "actions",
-      render: () => (
-        <Button type="primary" size="small" icon={<MessageOutlined />}>
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<MessageOutlined />}
+          onClick={() => handleStartSession(record._id)}
+        >
           Start Session
         </Button>
       ),
@@ -201,6 +316,14 @@ const DoctorDashboard = () => {
       </div>
     </Card>
   );
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -287,6 +410,7 @@ const DoctorDashboard = () => {
               columns={applicationColumns}
               dataSource={applications}
               pagination={false}
+              rowKey="_id"
             />
           </Card>
         </Col>
@@ -303,20 +427,22 @@ const DoctorDashboard = () => {
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
-                  key={message.id}
+                  key={message._id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center space-x-3">
                     <Avatar icon={<UserOutlined />} />
                     <div>
-                      <Text strong>{message.from}</Text>
+                      <Text strong>{message.from?.name || "Anonymous"}</Text>
                       <div className="text-sm text-gray-500">
-                        {message.message}
+                        {message.content}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-gray-500">{message.time}</div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(message.createdAt).toLocaleTimeString()}
+                    </div>
                     {message.unread && <Badge status="processing" text="New" />}
                   </div>
                 </div>
@@ -339,6 +465,7 @@ const DoctorDashboard = () => {
           columns={appointmentColumns}
           dataSource={appointments}
           pagination={false}
+          rowKey="_id"
         />
       </Card>
     </div>

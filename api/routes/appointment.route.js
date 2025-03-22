@@ -6,14 +6,16 @@ import {
     updateAppointment,
     deleteAppointment,
     getAppointmentsByDoctor,
-    getAppointmentsByPatient,
     approveAppointment,
     rejectAppointment,
     cancelAppointment,
     getDoctorSchedule,
-    getPatientHistory
+    getPatientHistory,
+    getUpcomingAppointments,
+    getDoctorAppointments,
+    getUpcomingAppointmentsDoctor,
+    getDoctorAppointmentsHistory
 } from '../controllers/appointment.controller.js';
-import { verifyToken, isDoctor, isPatient } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -22,19 +24,23 @@ const router = express.Router();
 // Protected routes
 
 // Patient routes
-router.post('/create', isPatient, createAppointment);
-router.get('/patient/history', isPatient, getPatientHistory);
-router.post('/cancel/:id', isPatient, cancelAppointment);
+router.post('/create', createAppointment);
+router.get('/patient/history/:id', getPatientHistory);
+router.get('/patient/upcoming/:id', getUpcomingAppointments);
+router.post('/cancel/:id', cancelAppointment);
 
 // Doctor routes
-router.get('/doctor/schedule', isDoctor, getDoctorSchedule);
-router.put('/approve/:id', isDoctor, approveAppointment);
-router.put('/reject/:id', isDoctor, rejectAppointment);
-router.get('/doctor/appointments', isDoctor, getAppointmentsByDoctor);
+router.get('/doctor/schedule', getDoctorSchedule);
+router.get('/doctor/upcoming/:id', getUpcomingAppointmentsDoctor);
+router.get('/doctor/history/:id', getDoctorAppointmentsHistory);
+router.put('/approve/:id', approveAppointment);
+router.put('/reject/:id', rejectAppointment);
+router.get('/doctor/appointments', getAppointmentsByDoctor);
 
 // Common routes (accessible by both doctor and patient)
 router.get('/', getAppointments);
 router.get('/:id', getAppointmentById);
+router.get('/doctorAppointments/:id', getDoctorAppointments);
 router.put('/:id', updateAppointment);
 router.delete('/:id', deleteAppointment);
 

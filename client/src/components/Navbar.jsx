@@ -156,7 +156,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
                       className="bg-blue-500"
                     />
                     <div className="hidden md:flex flex-col">
-                      <Text strong>{user?.fullName || "User Name"}</Text>
+                      <Text strong>{user?.name || "User Name"}</Text>
                       <Text type="secondary" className="text-xs">
                         {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
                       </Text>
@@ -164,7 +164,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
                   </Space>
                 </motion.div>
               </Dropdown>
-            </Space>
+            </Space>  
           ) : (
             <Space>
               <Link to="/login">
