@@ -165,7 +165,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
                   </Space>
                 </motion.div>
               </Dropdown>
-            </Space>
+            </Space>  
           ) : (
             <Space>
               <Link to="/login">

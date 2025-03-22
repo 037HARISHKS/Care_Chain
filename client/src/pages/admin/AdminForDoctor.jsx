@@ -51,47 +51,45 @@ const AdminForDoctor = () => {
   // Fetch doctors on component mount
   useEffect(() => {
     fetchDoctors();
-    fetchAppointments();
   }, []);
 
   // API placeholder functions
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      // Replace with actual API endpoint
-      const response = await fetch("/api/doctor");
-      const data = await response.json();
-      console.log(data);
-      setDoctors(data);
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/doctor", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const doctorsData = await response.json();
 
+      // Fetch appointments for each doctor
+      const doctorsWithAppointments = await Promise.all(
+        doctorsData.map(async (doctor) => {
+          const appointmentsResponse = await fetch(
+            `/api/appointments/doctorAppointments/${doctor._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const appointmentsData = await appointmentsResponse.json();
+          return {
+            ...doctor,
+            appointmentsCount: appointmentsData.length,
+            appointments: appointmentsData,
+          };
+        })
+      );
+
+      setDoctors(doctorsWithAppointments);
     } catch (error) {
       message.error("Failed to fetch doctors");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchAppointments = async () => {
-    try {
-      // Replace with actual API endpoint
-      const response = await fetch("/api/admin/appointments");
-      const data = await response.json();
-
-      // Static data for development
-      setAppointments([
-        {
-          id: 1,
-          doctorId: 1,
-          patientName: "John Doe",
-          date: "2024-02-20",
-          time: "10:00 AM",
-          status: "scheduled",
-          type: "consultation",
-        },
-        // Add more static appointment data
-      ]);
-    } catch (error) {
-      message.error("There is No");
     }
   };
 
@@ -174,29 +172,87 @@ const AdminForDoctor = () => {
 
   const handleUpdateDoctor = async (values) => {
     try {
-      // Replace with actual API endpoint
-      const response = await fetch(`/api/admin/doctors/${selectedDoctor.id}`, {
+      // Format the data to match the user model structure
+      const formattedData = {
+        // Basic Information
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        dateOfBirth: values.dateOfBirth.toISOString(),
+        gender: values.gender,
+
+        // Address
+        address: {
+          street: values.address?.street || "",
+          city: values.address?.city || "",
+          state: values.address?.state || "",
+          zipCode: values.address?.zipCode || "",
+          country: values.address?.country || "",
+        },
+
+        // Professional Details
+        specialization: values.specialization,
+        experience: values.experience,
+        license: {
+          number: values.license.number,
+          expiryDate: values.license.expiryDate.toISOString(),
+          verificationStatus: values.license.verificationStatus || "pending",
+        },
+        consultationFee: values.consultationFee,
+
+        // Education
+        education: values.education.map((edu) => ({
+          degree: edu.degree,
+          institution: edu.institution,
+          year: edu.year,
+        })),
+
+        // Emergency Contact
+        emergencyContact: {
+          name: values.emergencyContact?.name || "",
+          relationship: values.emergencyContact?.relationship || "",
+          phone: values.emergencyContact?.phone || "",
+        },
+
+        // Status
+        status: values.status || "active",
+      };
+
+      // Get auth token
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/doctor/update/${selectedDoctor._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formattedData),
       });
 
-      if (!response.ok) throw new Error("Failed to update doctor");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update doctor");
+      }
 
       message.success("Doctor updated successfully");
       setModalVisible(false);
       form.resetFields();
-      fetchDoctors();
+      fetchDoctors(); // Refresh the doctors list
     } catch (error) {
-      message.error("Failed to update doctor");
+      console.error("Error updating doctor:", error);
+      message.error(error.message || "Failed to update doctor");
     }
   };
 
   const handleDeleteDoctor = async (doctorId) => {
     try {
-      // Replace with actual API endpoint
-      const response = await fetch(`/api/admin/doctors/${doctorId}`, {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/doctor/${doctorId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) throw new Error("Failed to delete doctor");
@@ -224,9 +280,32 @@ const AdminForDoctor = () => {
 
       message.success("Appointment reassigned successfully");
       setReassignModalVisible(false);
-      fetchAppointments();
+      fetchDoctors();
     } catch (error) {
       message.error("Failed to reassign appointment");
+    }
+  };
+
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `/api/appointments/${appointmentId}/cancel`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to cancel appointment");
+
+      message.success("Appointment cancelled successfully");
+      fetchDoctors();
+    } catch (error) {
+      message.error("Failed to cancel appointment");
     }
   };
 
@@ -244,7 +323,6 @@ const AdminForDoctor = () => {
       filters: [
         { text: "Cardiologist", value: "Cardiologist" },
         { text: "Neurologist", value: "Neurologist" },
-        // Add more specializations
       ],
     },
     {
@@ -283,13 +361,26 @@ const AdminForDoctor = () => {
             icon={<EditOutlined />}
             onClick={() => {
               setSelectedDoctor(record);
-              form.setFieldsValue(record);
+              // Convert dates to moment objects for the form
+              const formValues = {
+                ...record,
+                dateOfBirth: record.dateOfBirth
+                  ? moment(record.dateOfBirth)
+                  : null,
+                license: {
+                  ...record.license,
+                  expiryDate: record.license?.expiryDate
+                    ? moment(record.license.expiryDate)
+                    : null,
+                },
+              };
+              form.setFieldsValue(formValues);
               setModalVisible(true);
             }}
           />
           <Popconfirm
             title="Are you sure you want to delete this doctor?"
-            onConfirm={() => handleDeleteDoctor(record.id)}
+            onConfirm={() => handleDeleteDoctor(record._id)}
           >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
@@ -590,7 +681,6 @@ const AdminForDoctor = () => {
               ]}
             >
               <InputNumber
-                
                 min={0}
                 className="w-full"
                 formatter={(value) =>
@@ -746,7 +836,6 @@ const AdminForDoctor = () => {
         onClose={() => setDrawerVisible(false)}
         width={600}
       >
-        {console.log("selectedDoctor", selectedDoctor)}
         {selectedDoctor && (
           <Tabs defaultActiveKey="1">
             <TabPane tab="Profile" key="1">
@@ -762,7 +851,9 @@ const AdminForDoctor = () => {
                   {selectedDoctor.phone}
                 </Descriptions.Item>
                 <Descriptions.Item label="Date of Birth">
-                  {moment(selectedDoctor.dateOfBirth).format("MMMM DD, YYYY")}
+                  {selectedDoctor.dateOfBirth
+                    ? moment(selectedDoctor.dateOfBirth).format("MMMM DD, YYYY")
+                    : "Not specified"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Gender">
                   {selectedDoctor.gender}
@@ -790,9 +881,11 @@ const AdminForDoctor = () => {
                   {selectedDoctor.license?.number}
                 </Descriptions.Item>
                 <Descriptions.Item label="License Expiry">
-                  {moment(selectedDoctor.license?.expiryDate).format(
-                    "MMMM DD, YYYY"
-                  )}
+                  {selectedDoctor.license?.expiryDate
+                    ? moment(selectedDoctor.license.expiryDate).format(
+                        "MMMM DD, YYYY"
+                      )
+                    : "Not specified"}
                 </Descriptions.Item>
                 <Descriptions.Item label="License Status">
                   <Tag
@@ -855,14 +948,112 @@ const AdminForDoctor = () => {
             </TabPane>
             <TabPane tab="Appointments" key="2">
               <Table
-                columns={
-                  [
-                    // Add appointment columns
-                  ]
-                }
-                dataSource={appointments.filter(
-                  (a) => a.doctorId === selectedDoctor.id
-                )}
+                columns={[
+                  {
+                    title: "Date",
+                    dataIndex: "date",
+                    render: (date) => moment(date).format("MMMM DD, YYYY"),
+                    sorter: (a, b) =>
+                      moment(a.date).unix() - moment(b.date).unix(),
+                  },
+                  {
+                    title: "Time",
+                    dataIndex: "time",
+                    sorter: (a, b) => a.time.localeCompare(b.time),
+                  },
+                  {
+                    title: "Patient",
+                    dataIndex: "patientId",
+                    render: (_, record) => record.patientName || "N/A",
+                  },
+                  {
+                    title: "Type",
+                    dataIndex: "type",
+                    render: (type) => (
+                      <Tag
+                        color={
+                          type === "consultation"
+                            ? "blue"
+                            : type === "follow-up"
+                            ? "green"
+                            : type === "emergency"
+                            ? "red"
+                            : "orange"
+                        }
+                      >
+                        {type.toUpperCase()}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Status",
+                    dataIndex: "status",
+                    render: (status) => (
+                      <Tag
+                        color={
+                          status === "scheduled"
+                            ? "blue"
+                            : status === "completed"
+                            ? "green"
+                            : status === "cancelled"
+                            ? "red"
+                            : "orange"
+                        }
+                      >
+                        {status.toUpperCase()}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Payment",
+                    dataIndex: "paymentStatus",
+                    render: (paymentStatus) => (
+                      <Tag
+                        color={
+                          paymentStatus === "completed"
+                            ? "green"
+                            : paymentStatus === "pending"
+                            ? "orange"
+                            : "red"
+                        }
+                      >
+                        {paymentStatus.toUpperCase()}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Actions",
+                    key: "actions",
+                    render: (_, record) => (
+                      <Space>
+                        <Button
+                          type="link"
+                          onClick={() => {
+                            setSelectedAppointment(record);
+                            setReassignModalVisible(true);
+                          }}
+                        >
+                          Reassign
+                        </Button>
+                        <Popconfirm
+                          title="Are you sure you want to cancel this appointment?"
+                          onConfirm={() => handleCancelAppointment(record._id)}
+                        >
+                          <Button type="link" danger>
+                            Cancel
+                          </Button>
+                        </Popconfirm>
+                      </Space>
+                    ),
+                  },
+                ]}
+                dataSource={selectedDoctor?.appointments || []}
+                rowKey="_id"
+                pagination={{
+                  pageSize: 5,
+                  showSizeChanger: true,
+                  showTotal: (total) => `Total ${total} appointments`,
+                }}
               />
             </TabPane>
           </Tabs>

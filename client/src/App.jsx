@@ -40,6 +40,8 @@ function App() {
               <Route path="admin" element={<AdminDashboard />} />
               <Route path="admin/doctors" element={<AdminForDoctor />} />
               <Route path="admin/patients" element={<AdminForPatient />} />
+              <Route path="doctor/upcoming" element={<UpcomingRequests />} />
+              <Route path="doctor/completed" element={<HistoryPatient />} />
             </Route>
             <Route path="/profile">
               <Route path="patient" element={<PatientProfile />} />

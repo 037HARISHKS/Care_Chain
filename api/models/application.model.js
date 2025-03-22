@@ -1,92 +1,89 @@
 import mongoose from 'mongoose';
 
+const fileSchema = new mongoose.Schema({
+  filename: {
+    type: String,
+    required: true
+  },
+  originalname: {
+    type: String,
+    required: true
+  },
+  path: {
+    type: String,
+    required: true
+  },
+  size: {
+    type: Number,
+    required: true
+  },
+  mimetype: {
+    type: String,
+    required: true
+  }
+});
+
 const applicationSchema = new mongoose.Schema({
   patientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: true
   },
   doctorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  time: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
     required: true,
+    enum: ['consultation', 'follow-up', 'emergency', 'routine-checkup']
   },
   problem: {
     type: String,
-    required: true,
+    required: true
   },
   symptoms: [{
-    type: String,
+    type: String
   }],
-  medicalHistory: {
-    type: String,
+  duration: {
+    type: Number,
     required: true,
+    min: 15,
+    max: 120
   },
-  preferredDate: {
-    type: Date,
-    required: true,
+  attachments: [fileSchema],
+  followUpNeeded: {
+    type: Boolean,
+    default: false
   },
-  preferredTime: {
+  paymentAmount: {
+    type: Number,
+    required: true
+  },
+  paymentStatus: {
     type: String,
-    required: true,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'pending'
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'cancelled'],
-    default: 'pending',
+    enum: ['scheduled', 'completed', 'cancelled'],
+    default: 'scheduled'
   },
-  priority: {
-    type: String,
-    enum: ['low', 'medium', 'high', 'emergency'],
-    default: 'medium',
-  },
-  attachments: [{
-    name: String,
-    url: String,
-    type: String,
-    uploadedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  }],
-  notes: {
-    type: String,
-    default: '',
-  },
-  reviewedAt: Date,
-  reviewedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  rejectionReason: String,
-  appointmentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Appointment',
-  },
-  notifications: [{
-    type: {
-      type: String,
-      enum: ['submitted', 'reviewed', 'approved', 'rejected'],
-    },
-    message: String,
-    sentAt: {
-      type: Date,
-      default: Date.now,
-    },
-    status: {
-      type: String,
-      enum: ['sent', 'delivered', 'read'],
-      default: 'sent',
-    },
-  }],
+  notes: String,
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
 
 // Pre-save middleware

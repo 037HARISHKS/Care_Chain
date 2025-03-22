@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
   Form,
   Input,
@@ -23,6 +24,8 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 const AppointmentForm = () => {
+  const currentUser = useSelector((state) => state.auth.user);
+  console.log("currentUser", currentUser);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [doctors, setDoctors] = useState([]); // This would be populated from an API
@@ -43,37 +46,85 @@ const AppointmentForm = () => {
   };
 
   const onFinish = async (values) => {
+    console.log("values", values);
     setLoading(true);
     try {
-      // Format the data
-      const formattedData = {
-        ...values,
-        date: values.date.format("YYYY-MM-DD"),
-        time: values.time.format("HH:mm"),
-        patientId: "current-user-id", // Replace with actual user ID from auth context
-        paymentStatus: "pending",
-        status: "scheduled",
-      };
+      // Handle file uploads
+      const formData = new FormData();
 
-      // Replace with your actual API endpoint
-      const response = await fetch("/api/appointments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Add your authentication headers here
-        },
-        body: JSON.stringify(formattedData),
+      // Add all form fields to FormData
+      Object.keys(values).forEach((key) => {
+        if (key === "attachments" && values[key]) {
+          // Handle file attachments
+          values[key].forEach((file, index) => {
+            if (file.originFileObj) {
+              formData.append(`attachments`, file.originFileObj);
+            }
+          });
+        } else if (key === "date" || key === "time") {
+          // Format date and time
+          formData.append(
+            key,
+            values[key].format(key === "date" ? "YYYY-MM-DD" : "HH:mm")
+          );
+        } else if (key === "symptoms") {
+          // Handle symptoms array
+          formData.append(key, JSON.stringify(values[key]));
+        } else {
+          // Handle other fields
+          formData.append(key, values[key]);
+        }
       });
 
-      if (!response.ok) throw new Error("Failed to create appointment");
+      // Add user ID and status
+      formData.append("patientId", currentUser.id);
+      formData.append("paymentStatus", "pending");
+      formData.append("status", "scheduled");
+
+      // Get auth token
+      const token = localStorage.getItem("token");
+
+      // Updated API endpoint
+      const response = await fetch("/api/appointments/create", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Don't set Content-Type header, let browser set it with boundary
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create appointment");
+      }
 
       message.success("Appointment scheduled successfully!");
       form.resetFields();
     } catch (error) {
-      message.error("Failed to schedule appointment: " + error.message);
+      console.error("Appointment creation error:", error);
+      message.error(error.message || "Failed to schedule appointment");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Add file validation
+  const beforeUpload = (file) => {
+    const isImage = file.type.startsWith("image/");
+    const isPDF = file.type === "application/pdf";
+    const isLt5M = file.size / 1024 / 1024 < 5;
+
+    if (!isImage && !isPDF) {
+      message.error("You can only upload image or PDF files!");
+      return false;
+    }
+    if (!isLt5M) {
+      message.error("File must be smaller than 5MB!");
+      return false;
+    }
+    return false; // Return false to prevent auto upload
   };
 
   return (
@@ -229,8 +280,16 @@ const AppointmentForm = () => {
             return e?.fileList;
           }}
         >
-          <Upload beforeUpload={() => false} multiple maxCount={5}>
+          <Upload
+            beforeUpload={beforeUpload}
+            multiple
+            maxCount={5}
+            accept=".jpg,.jpeg,.png,.pdf"
+          >
             <Button icon={<UploadOutlined />}>Upload Files</Button>
+            <div className="text-gray-500 text-sm mt-1">
+              Supported formats: JPG, PNG, PDF (max 5MB)
+            </div>
           </Upload>
         </Form.Item>
 
