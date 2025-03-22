@@ -241,7 +241,11 @@ const loginUser = async (req, res, role) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                profilePicture: user.profilePicture
+                profilePicture: user.profilePicture,
+                emergencyContact: user.emergencyContact,
+                dateOfBirth: user.dateOfBirth,
+                gender: user.gender,
+                phone: user.phone
             }, 
             token 
         });

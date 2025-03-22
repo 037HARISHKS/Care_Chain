@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
+
 import {
   Layout,
   Menu,
@@ -156,7 +157,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
                       className="bg-blue-500"
                     />
                     <div className="hidden md:flex flex-col">
-                      <Text strong>{user?.fullName || "User Name"}</Text>
+                      <Text strong>{user?.name || "User Name"}</Text>
                       <Text type="secondary" className="text-xs">
                         {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
                       </Text>
