@@ -1,29 +1,52 @@
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { Card, Button, Avatar, TextInput, Label, Select } from 'flowbite-react';
 import { motion } from 'framer-motion';
 
 const PatientProfile = () => {
+  const { user } = useSelector((state) => state.auth); // Get user data from Redux
+
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    fullName: 'John Smith',
-    email: 'john@example.com',
-    dateOfBirth: '1990-01-01',
-    gender: 'male',
-    phone: '+1234567890',
-    address: '123 Main St, City, Country',
-    emergencyContact: 'Jane Smith (+1987654321)',
-    bloodGroup: 'O+',
-    allergies: 'None',
-    medicalHistory: 'No major conditions',
-    insuranceDetails: 'Insurance XYZ - Policy #12345',
-    profilePicture: null
+    fullName: user?.name || 'John Smith',
+    email: user?.email || 'john@example.com',
+    dateOfBirth: user?.dateOfBirth || '1990-01-01',
+    gender: user?.gender || 'male',
+    phone: user?.phone || '+1234567890',
+    address: user?.address || '123 Main St, City, Country',
+    emergencyContact: user?.emergencyContact || 'Jane Smith (+1987654321)',
+    bloodGroup: user?.bloodGroup || 'O+',
+    allergies: user?.allergies || 'None',
+    medicalHistory: user?.medicalHistory || 'No major conditions',
+    insuranceDetails: user?.insuranceDetails || 'Insurance XYZ - Policy #12345',
+    profilePicture: user?.profilePicture || null,
   });
+
+  useEffect(() => {
+    if (user) {
+      setProfile((prev) => ({
+        ...prev,
+        fullName: user?.name || 'John Smith',
+        email: user?.email || 'john@example.com',
+        dateOfBirth: user?.dateOfBirth || '1990-01-01',
+        gender: user?.gender || 'male',
+        phone: user?.phone || '+1234567890',
+        address: user?.address || '123 Main St, City, Country',
+        emergencyContact: user?.emergencyContact || 'Jane Smith (+1987654321)',
+        bloodGroup: user?.bloodGroup || 'O+',
+        allergies: user?.allergies || 'None',
+        medicalHistory: user?.medicalHistory || 'No major conditions',
+        insuranceDetails: user?.insuranceDetails || 'Insurance XYZ - Policy #12345',
+        profilePicture: user?.profilePicture || null,
+      }));
+    }
+  }, [user]); // Update when user data changes
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
-      [name]: files ? files[0] : value
+      [name]: files ? files[0] : value,
     }));
   };
 
@@ -39,73 +62,37 @@ const PatientProfile = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Profile Information</h2>
-            <Button onClick={() => setIsEditing(!isEditing)}>
-              {isEditing ? 'Cancel' : 'Edit Profile'}
-            </Button>
+            <Button onClick={() => setIsEditing(!isEditing)}>{isEditing ? 'Cancel' : 'Edit Profile'}</Button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Picture */}
             <div className="flex items-center space-x-4">
-              <Avatar size="xl" rounded />
-              {isEditing && (
-                <Button size="sm">
-                  Change Photo
-                </Button>
-              )}
+              <Avatar size="xl" rounded src={profile.profilePicture || 'https://via.placeholder.com/150'} />
+              {isEditing && <Button size="sm">Change Photo</Button>}
             </div>
 
             {/* Personal Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="fullName">Full Name</Label>
-                <TextInput
-                  id="fullName"
-                  name="fullName"
-                  value={profile.fullName}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+                <TextInput id="fullName" name="fullName" value={profile.fullName} onChange={handleChange} disabled={!isEditing} />
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <TextInput
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={profile.email}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+                <TextInput id="email" name="email" type="email" value={profile.email} onChange={handleChange} disabled={!isEditing} />
               </div>
               <div>
                 <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <TextInput
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  type="date"
-                  value={profile.dateOfBirth}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+                <TextInput id="dateOfBirth" name="dateOfBirth" type="date" value={profile.dateOfBirth} onChange={handleChange} disabled={!isEditing} />
               </div>
               <div>
                 <Label htmlFor="gender">Gender</Label>
-                <Select
-                  id="gender"
-                  name="gender"
-                  value={profile.gender}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                >
+                <Select id="gender" name="gender" value={profile.gender} onChange={handleChange} disabled={!isEditing}>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="other">Other</option>
@@ -117,23 +104,11 @@ const PatientProfile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="phone">Phone Number</Label>
-                <TextInput
-                  id="phone"
-                  name="phone"
-                  value={profile.phone}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+                <TextInput id="phone" name="phone" value={profile.phone} onChange={handleChange} disabled={!isEditing} />
               </div>
               <div>
                 <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                <TextInput
-                  id="emergencyContact"
-                  name="emergencyContact"
-                  value={profile.emergencyContact}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+                <TextInput id="emergencyContact" name="emergencyContact" value={profile.emergencyContact} onChange={handleChange} disabled={!isEditing} />
               </div>
             </div>
 
@@ -141,13 +116,7 @@ const PatientProfile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="bloodGroup">Blood Group</Label>
-                <Select
-                  id="bloodGroup"
-                  name="bloodGroup"
-                  value={profile.bloodGroup}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                >
+                <Select id="bloodGroup" name="bloodGroup" value={profile.bloodGroup} onChange={handleChange} disabled={!isEditing}>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
                   <option value="B+">B+</option>
@@ -160,13 +129,7 @@ const PatientProfile = () => {
               </div>
               <div>
                 <Label htmlFor="allergies">Allergies</Label>
-                <TextInput
-                  id="allergies"
-                  name="allergies"
-                  value={profile.allergies}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+                <TextInput id="allergies" name="allergies" value={profile.allergies} onChange={handleChange} disabled={!isEditing} />
               </div>
             </div>
 
@@ -184,4 +147,4 @@ const PatientProfile = () => {
   );
 };
 
-export default PatientProfile; 
+export default PatientProfile;
