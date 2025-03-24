@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
-import { Card, Table, Tag, Avatar, Button, message } from "antd";
+import { Card, Table, Tag, Avatar, Button, message, Modal } from "antd";
 import {
   UserOutlined,
   CalendarOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
+import ReportForm from '../dashboard/ReportForm';
 
 const UpcomingRequests = () => {
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const currentUser = useSelector((state) => state.auth.user);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
 
   useEffect(() => {
     fetchUpcomingAppointments();
@@ -77,7 +80,8 @@ const UpcomingRequests = () => {
       if (!response.ok) throw new Error("Failed to accept appointment");
 
       message.success("Appointment accepted successfully");
-      fetchUpcomingAppointments();
+      setSelectedAppointmentId(id);
+      setIsModalVisible(true);
     } catch (error) {
       message.error("Failed to accept appointment: " + error.message);
     }
@@ -101,6 +105,11 @@ const UpcomingRequests = () => {
     } catch (error) {
       message.error("Failed to reject appointment: " + error.message);
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedAppointmentId(null);
   };
 
   // Patient view columns
@@ -329,6 +338,15 @@ const UpcomingRequests = () => {
           }}
         />
       </Card>
+
+      <Modal
+        title="Add Report"
+        visible={isModalVisible}
+        onCancel={handleCloseModal}
+        footer={null}
+      >
+        <ReportForm appointmentId={selectedAppointmentId} onClose={handleCloseModal} />
+      </Modal>
     </div>
   );
 };

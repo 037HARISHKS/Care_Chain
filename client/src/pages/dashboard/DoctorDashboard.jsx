@@ -10,6 +10,8 @@ import {
   Typography,
   Badge,
   Spin,
+  Modal,
+  message,
 } from "antd";
 import { motion } from "framer-motion";
 import {
@@ -29,6 +31,7 @@ import {
   FaCommentMedical,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import ReportForm from './ReportForm';
 
 const { Title, Text } = Typography;
 
@@ -44,6 +47,8 @@ const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [messages, setMessages] = useState([]);
   const currentUser = useSelector((state) => state.auth.user);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -119,7 +124,8 @@ const DoctorDashboard = () => {
       if (!response.ok) throw new Error("Failed to accept application");
 
       message.success("Application accepted successfully");
-      fetchDashboardData(); // Refresh data
+      setSelectedAppointmentId(applicationId);
+      setIsModalVisible(true);
     } catch (error) {
       message.error("Failed to accept application");
     }
@@ -168,6 +174,16 @@ const DoctorDashboard = () => {
     } catch (error) {
       message.error("Failed to start session");
     }
+  };
+
+  const handleOpenReportForm = (appointmentId) => {
+    setSelectedAppointmentId(appointmentId);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedAppointmentId(null);
   };
 
   const applicationColumns = [
@@ -468,6 +484,15 @@ const DoctorDashboard = () => {
           rowKey="_id"
         />
       </Card>
+
+      <Modal
+        title="Add Report"
+        visible={isModalVisible}
+        onCancel={handleCloseModal}
+        footer={null}
+      >
+        <ReportForm appointmentId={selectedAppointmentId} onClose={handleCloseModal} />
+      </Modal>
     </div>
   );
 };

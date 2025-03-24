@@ -24,8 +24,9 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 const AppointmentForm = () => {
-  const currentUser = useSelector((state) => state.auth.user);
+  const currentUser = useSelector((state) => state.auth);
   console.log("currentUser", currentUser);
+  console.log(currentUser.user.id);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [doctors, setDoctors] = useState([]); // This would be populated from an API
@@ -77,13 +78,13 @@ const AppointmentForm = () => {
       });
 
       // Add user ID and status
-      formData.append("patientId", currentUser.id);
+      formData.append("patientId", currentUser.user.id);
       formData.append("paymentStatus", "pending");
       formData.append("status", "scheduled");
 
       // Get auth token
       const token = localStorage.getItem("token");
-
+      console.log(formData);
       // Updated API endpoint
       const response = await fetch("/api/appointments/create", {
         method: "POST",

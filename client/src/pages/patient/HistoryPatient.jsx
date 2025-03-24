@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, Table, Tag, Avatar, Button, message } from "antd";
+import { Card, Table, Tag, Avatar, Button, message, Modal } from "antd";
 import { UserOutlined, CalendarOutlined } from "@ant-design/icons";
 import { FaFileMedical } from "react-icons/fa";
 import { useSelector } from "react-redux";
@@ -7,6 +7,8 @@ import { useSelector } from "react-redux";
 const AppointmentHistory = () => {
   const [loading, setLoading] = useState(false);
   const [applications, setApplications] = useState([]);
+  const [reportDetails, setReportDetails] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const currentUser = useSelector((state) => state.auth.user);
 
   useEffect(() => {
@@ -34,6 +36,35 @@ const AppointmentHistory = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewDetails = async (appointmentId) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/reports?appointmentId=${appointmentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch report details');
+      }
+
+      const report = await response.json();
+      setReportDetails(report);
+      setIsModalVisible(true);
+    } catch (error) {
+      message.error(error.message || 'Failed to fetch report details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setReportDetails(null);
   };
 
   // Patient view columns
@@ -111,7 +142,7 @@ const AppointmentHistory = () => {
           type="primary"
           size="small"
           icon={<FaFileMedical className="mr-1" />}
-          onClick={() => handleViewDetails(record._id)}
+          onClick={() => handleViewDetails(record.appointmentId)}
         >
           View Details
         </Button>
@@ -210,18 +241,13 @@ const AppointmentHistory = () => {
           type="primary"
           size="small"
           icon={<FaFileMedical className="mr-1" />}
-          onClick={() => handleViewDetails(record._id)}
+          onClick={() => handleViewDetails(record.appointmentId)}
         >
           View Details
         </Button>
       ),
     },
   ];
-
-  const handleViewDetails = (id) => {
-    // Implement view details functionality
-    console.log("Viewing details for appointment:", id);
-  };
 
   return (
     <div className="p-6">
@@ -251,6 +277,25 @@ const AppointmentHistory = () => {
           }}
         />
       </Card>
+
+      <Modal
+        title="Report Details"
+        visible={isModalVisible}
+        onCancel={handleModalClose}
+        footer={null}
+      >
+        {reportDetails && (
+          <div>
+            <p><strong>Patient Name:</strong> {reportDetails.name}</p>
+            <p><strong>Patient ID:</strong> {reportDetails.patientId}</p>
+            <p><strong>Age:</strong> {reportDetails.age}</p>
+            <p><strong>Medicine Suggested:</strong> {reportDetails.medicineSuggested}</p>
+            <p><strong>Remarks:</strong> {reportDetails.remarks}</p>
+            <p><strong>Generate Report:</strong> {reportDetails.generateReport ? 'Yes' : 'No'}</p>
+            <p><strong>Created At:</strong> {new Date(reportDetails.createdAt).toLocaleString()}</p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
