@@ -42,7 +42,7 @@ const AppointmentHistory = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/reports?appointmentId=${appointmentId}`, {
+      const response = await fetch(`/api/reports?${appointmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -142,7 +142,7 @@ const AppointmentHistory = () => {
           type="primary"
           size="small"
           icon={<FaFileMedical className="mr-1" />}
-          onClick={() => handleViewDetails(record.appointmentId)}
+          onClick={() => handleViewDetails(record._id)}
         >
           View Details
         </Button>
@@ -241,7 +241,7 @@ const AppointmentHistory = () => {
           type="primary"
           size="small"
           icon={<FaFileMedical className="mr-1" />}
-          onClick={() => handleViewDetails(record.appointmentId)}
+          onClick={() => handleViewDetails(record._id)}
         >
           View Details
         </Button>

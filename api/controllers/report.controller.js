@@ -65,10 +65,12 @@ export const getReportsByPatient = async (req, res) => {
 
 export const getReportById = async (req, res) => {
   try {
-    const { appointmentId } = req.query; // Change to query parameter
+    const { appointmentId } = req.query; // Get appointmentId from query parameters
     console.log("Fetching report details for appointment ID:", appointmentId);
 
-    const report = await Report.findOne({ appointmentId }).populate('doctorId', 'name').populate('patientId', 'name'); // Populate doctor and patient names
+    const report = await Report.findOne({ appointmentId }) // Find report by appointmentId
+      .populate('doctorId', 'name')
+      .populate('patientId', 'name');
 
     if (!report) {
       console.log("Report not found for appointment ID:", appointmentId);
