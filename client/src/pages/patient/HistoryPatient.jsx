@@ -42,7 +42,7 @@ const AppointmentHistory = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/reports?${appointmentId}`, {
+      const response = await fetch(`/api/reports/by-appointment?appointmentId=${appointmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -287,7 +287,7 @@ const AppointmentHistory = () => {
         {reportDetails && (
           <div>
             <p><strong>Patient Name:</strong> {reportDetails.name}</p>
-            <p><strong>Patient ID:</strong> {reportDetails.patientId}</p>
+            <p><strong>Patient ID:</strong> {reportDetails.patientId?._id || reportDetails.patientId}</p>
             <p><strong>Age:</strong> {reportDetails.age}</p>
             <p><strong>Medicine Suggested:</strong> {reportDetails.medicineSuggested}</p>
             <p><strong>Remarks:</strong> {reportDetails.remarks}</p>

@@ -12,6 +12,6 @@ router.post('/', authenticateToken, upload.single('reportFile'), createReport);
 router.get('/patient/:patientId', authenticateToken, getReportsByPatient);
 
 // Route to get report details by ID
-router.get('/:id', authenticateToken, getReportById);
+router.get('/by-appointment', authenticateToken, getReportById);
 
 export default router; 
