@@ -19,6 +19,8 @@ import HistoryPatient from "./pages/patient/HistoryPatient";
 import UpcomingRequests from "./pages/patient/UpcomingRequests";
 import AdminForDoctor from "./pages/admin/AdminForDoctor";
 import AdminForPatient from "./pages/admin/AdminForPatient";
+import ScanStaffDashboard from "./pages/scanStaff/Dashboard";
+import ReportForm from "./pages/dashboard/ReportForm";
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <Routes>
+            {/*Test routes */}
+            <Route path="/test" element={<ReportForm />} />
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -42,6 +46,7 @@ function App() {
               <Route path="admin/patients" element={<AdminForPatient />} />
               <Route path="doctor/upcoming" element={<UpcomingRequests />} />
               <Route path="doctor/completed" element={<HistoryPatient />} />
+              <Route path="scan-staff" element={<ScanStaffDashboard />} />
             </Route>
             <Route path="/profile">
               <Route path="patient" element={<PatientProfile />} />

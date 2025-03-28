@@ -14,7 +14,6 @@ const UpcomingRequests = () => {
   const currentUser = useSelector((state) => state.auth.user);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
-
   useEffect(() => {
     fetchUpcomingAppointments();
   }, []);
