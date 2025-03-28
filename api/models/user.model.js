@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['patient', 'doctor', 'admin'],
+    enum: ['patient', 'doctor', 'admin', 'technician'],
     required: true,
   },
   name: {
@@ -83,6 +83,24 @@ const userSchema = new mongoose.Schema({
     year: Number,
   }],
 
+  // Technician specific fields
+  technicianDetails: {
+    staff_id: { type: String, unique: true },
+    staff_role: { 
+      type: String, 
+      enum: ['Scan Staff', 'Lab Staff'],
+      required: function() { return this.role === 'technician'; }
+    },
+    department: String,
+    qualification: String,
+    joiningDate: Date,
+    verificationStatus: {
+      type: String,
+      enum: ['pending', 'verified', 'rejected'],
+      default: 'pending',
+    }
+  },
+
   ratings: [{
     rating: {
       type: Number,
@@ -120,26 +138,26 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// // Pre-save middleware to hash password
-// userSchema.pre('save', async function(next) {
-//   if (this.isModified('password')) {
-//     this.password = await bcrypt.hash(this.password, 10);
-//   }
-//   this.updatedAt = Date.now();
-//   next();
-// });
+// Pre-save middleware to hash password
+userSchema.pre('save', async function(next) {
+  if (this.isModified('password')) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  this.updatedAt = Date.now();
+  next();
+});
 
-// // Method to compare password
-// userSchema.methods.comparePassword = async function(candidatePassword) {
-//   return bcrypt.compare(candidatePassword, this.password);
-// };
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
-// // Method to calculate average rating
-// userSchema.methods.calculateAverageRating = function() {
-//   if (this.ratings.length === 0) return 0;
-//   const sum = this.ratings.reduce((acc, curr) => acc + curr.rating, 0);
-//   return sum / this.ratings.length;
-// };
+// Method to calculate average rating
+userSchema.methods.calculateAverageRating = function() {
+  if (this.ratings.length === 0) return 0;
+  const sum = this.ratings.reduce((acc, curr) => acc + curr.rating, 0);
+  return sum / this.ratings.length;
+};
 
 const User = mongoose.model('User', userSchema);
 

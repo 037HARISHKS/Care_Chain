@@ -3,6 +3,7 @@ import { Card, Table, Tag, Avatar, Button, message, Modal } from "antd";
 import { UserOutlined, CalendarOutlined } from "@ant-design/icons";
 import { FaFileMedical } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import ReportForm from "../dashboard/ReportForm";
 
 const AppointmentHistory = () => {
   const [loading, setLoading] = useState(false);
@@ -284,17 +285,7 @@ const AppointmentHistory = () => {
         onCancel={handleModalClose}
         footer={null}
       >
-        {reportDetails && (
-          <div>
-            <p><strong>Patient Name:</strong> {reportDetails.name}</p>
-            <p><strong>Patient ID:</strong> {reportDetails.patientId?._id || reportDetails.patientId}</p>
-            <p><strong>Age:</strong> {reportDetails.age}</p>
-            <p><strong>Medicine Suggested:</strong> {reportDetails.medicineSuggested}</p>
-            <p><strong>Remarks:</strong> {reportDetails.remarks}</p>
-            <p><strong>Generate Report:</strong> {reportDetails.generateReport ? 'Yes' : 'No'}</p>
-            <p><strong>Created At:</strong> {new Date(reportDetails.createdAt).toLocaleString()}</p>
-          </div>
-        )}
+       <ReportForm />
       </Modal>
     </div>
   );

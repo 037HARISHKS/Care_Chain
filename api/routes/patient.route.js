@@ -1,8 +1,10 @@
 import express from 'express';
-import {getPatients} from '../controllers/patient.controller.js';
+import {getPatientByApplicationId, getPatients} from '../controllers/patient.controller.js';
 
 const router = express.Router();
 
 router.get('/', getPatients);
+
+router.get('/application/:id', getPatientByApplicationId);
 
 export default router;
