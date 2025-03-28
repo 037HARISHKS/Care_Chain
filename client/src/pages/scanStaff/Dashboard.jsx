@@ -40,8 +40,7 @@ const ScanStaffDashboard = () => {
     totalPatients: 17,
     todayScans: 3,
   });
-
-  const [scanRequests, setScanRequests] = useState([]);
+  const [scanRequests, setScanRequests] = useState();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedScan, setSelectedScan] = useState(null);
@@ -68,21 +67,20 @@ const ScanStaffDashboard = () => {
       message.error("Failed to upload report");
     }
   };
-
   const fetchScanRequests = async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/technician/fetchScanRequests`);
       const data = await response.json();
 
-      if (Array.isArray(data) && data.length > 0) {
-        const { lab_requests } = data[0]; // Destructure lab_requests
-        setScanRequests(Array.isArray(lab_requests) ? lab_requests : []); // Ensure it's an array
+      if (data.length > 0 && Array.isArray(data[0].lab_requests)) {
+        console.log("Fetched Data:", data);
+        console.log("Lab Requests:", data[0].lab_requests);
+        setScanRequests(data[0].lab_requests);
       } else {
-        setScanRequests([]); // Default empty array if data is not as expected
+        console.warn("Unexpected data format:", data);
+        setScanRequests([]);
       }
-
-      console.log("Fetched Data:", data);
     } catch (error) {
       message.error("Failed to fetch scan requests");
       console.error("Fetch error:", error);
@@ -91,106 +89,45 @@ const ScanStaffDashboard = () => {
     }
   };
 
-
-
   useEffect(() => {
     fetchScanRequests();
   }, []);
 
   const columns = [
     {
-      title: "Patient",
-      dataIndex: "patientName",
-      key: "patient",
-      render: (text) => (
-        <div className="flex items-center">
-          <Avatar icon={<UserOutlined />} className="mr-2" />
-          {text}
-        </div>
-      ),
+      title: "appointment_id",
+      dataIndex: "appointment_id",
+      key: "appointment_id",
     },
     {
-      title: "Doctor",
-      dataIndex: "doctorName",
-      key: "doctor",
+      title: "doctor_name",
+      dataIndex: "doctor_name",
+      key: "doctor_name",
     },
     {
-      title: "Scan Type",
-      dataIndex: "scanType",
-      key: "scanType",
-      render: (type) => (
-        <Tag
-          color={
-            type === "MRI"
-              ? "blue"
-              : type === "X-Ray"
-              ? "green"
-              : type === "CT Scan"
-              ? "purple"
-              : "orange"
-          }
-        >
-          {type}
-        </Tag>
-      ),
+      title: "observations",
+      dataIndex: "observations",
+      key: "observations",
     },
     {
-      title: "Body Part",
-      dataIndex: "bodyPart",
-      key: "bodyPart",
+      title: "patient_id",
+      dataIndex: "patient_id",
+      key: "patient_id",
     },
     {
-      title: "Date & Time",
-      dataIndex: "date",
-      key: "datetime",
-      render: (text, record) => (
-        <span>
-          <CalendarOutlined className="mr-2" />
-          {text} {record.time}
-        </span>
-      ),
+      title: "patient_name",
+      dataIndex: "patient_name",
+      key: "patient_name",
     },
     {
-      title: "Priority",
-      dataIndex: "priority",
-      key: "priority",
-      render: (priority) => (
-        <Tag
-          color={
-            priority === "high"
-              ? "red"
-              : priority === "medium"
-              ? "orange"
-              : "green"
-          }
-        >
-          {priority.toUpperCase()}
-        </Tag>
-      ),
+      title: "test_status",
+      dataIndex: "test_status",
+      key: "test_status",
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (
-        <Tag color={status === "completed" ? "success" : "warning"}>
-          {status.toUpperCase()}
-        </Tag>
-      ),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Button
-          type="primary"
-          icon={<UploadOutlined />}
-          onClick={() => handleUploadReport(record.id)}
-          disabled={record.status === "completed"}
-        >
-          Upload Report
-        </Button>
-      ),
+      title: "test_type",
+      dataIndex: "test_type",
+      key: "test_type",
     },
   ];
 
@@ -296,16 +233,7 @@ const ScanStaffDashboard = () => {
           </div>
         }
       >
-        <Table
-          columns={columns}
-          dataSource={scanRequests}
-          rowKey="id"
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} scan requests`,
-          }}
-        />
+        <Table dataSource={scanRequests} columns={columns} />;
       </Card>
 
       <Modal
