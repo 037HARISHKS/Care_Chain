@@ -42,7 +42,7 @@ const ScanStaffDashboard = () => {
   });
   const [scanRequests, setScanRequests] = useState();
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
+const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedScan, setSelectedScan] = useState(null);
   const [form] = Form.useForm();
 

@@ -15,6 +15,7 @@ const TechnicianSchema = new mongoose.Schema({
     doctor_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     patient_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     scan_type: { type: String, required: true },
+    age:{type:Number, required: true},
     scan_status: { type: String, enum: ["Pending", "Completed"], default: "Pending" },
     observations: { type: String },
     scan_report: { type: String },
@@ -27,6 +28,7 @@ const TechnicianSchema = new mongoose.Schema({
     doctor_name: { type: String, required: true },
     patient_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     patient_name: { type: String, required: true },
+    age:{type:Number, required: true},
     test_type: { type: String, required: true }, // Example: Blood Test, Urine Test
     test_status: { type: String, enum: ["Pending", "Completed"], default: "Pending" },
     observations: { type: String }, // Staff's observations on the test
