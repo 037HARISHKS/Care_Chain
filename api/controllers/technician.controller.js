@@ -1,5 +1,5 @@
-import Technicians from '../models/technician.model.js';
-import User from '../models/user.model.js';
+import Technician from '../models/technician.model.js';
+    import User from '../models/user.model.js';
 
 export const techReportCreationByDoctor = async(req, res) => {
     try {
@@ -35,6 +35,7 @@ export const techReportCreationByDoctor = async(req, res) => {
                                 doctor_name: requestData.doctor_name,
                                 patient_id: requestData.patient_id,
                                 patient_name: requestData.patient_name,
+                                age: requestData.age,
                                 scan_type: requestData.scan_type,
                                 observations: requestData.observations || "",
                                 scan_status: "Pending"
@@ -72,6 +73,7 @@ export const techReportCreationByDoctor = async(req, res) => {
                                 doctor_name: requestData.doctor_name,
                                 patient_id: requestData.patient_id,
                                 patient_name: requestData.patient_name,
+                                age: requestData.age,
                                 test_type: requestData.test_type,
                                 observations: requestData.observations || "",
                                 test_status: "Pending"

@@ -33,22 +33,24 @@ const ReportForm = ({ appointmentId, onClose }) => {
         appointmentId: appointmentId,
         patientId: patient.patientId?._id,
         patientName: patient.patientId?.name,
+        age: values.age,
         prescriptions: values.prescriptions,
         suggestions: values.suggestions,
+
       };
+      if (!values.suggestScan && !values.suggestLabTest) {
+      const reportResponse = await fetch("/api/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(reportData),
+      });
 
-      // const reportResponse = await fetch("/api/reports", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      //   body: JSON.stringify(reportData),
-      // });
-
-      // if (!reportResponse.ok) {
-      //   throw new Error("Failed to submit report");
-      // }
+      if (!reportResponse.ok) {
+        throw new Error("Failed to submit report");
+      }}
 
       if (values.suggestScan || values.suggestLabTest) {
         const technicianRequests = [];
@@ -60,6 +62,7 @@ const ReportForm = ({ appointmentId, onClose }) => {
             doctor_name: currentUser.name,
             patient_id: patient.patientId?._id,
             patient_name: patient.patientId?.name,
+            age: values.age,
             request_type: "Scan",
             scan_type: values.scanType,
             observations: values.scanObservations,
@@ -73,6 +76,7 @@ const ReportForm = ({ appointmentId, onClose }) => {
             doctor_name: currentUser.name,
             patient_id: patient.patientId?._id,
             patient_name: patient.patientId?.name,
+            age : values.age,
             request_type: "Lab Test",
             test_type: values.labTestType,
             observations: values.labTestObservations,
@@ -116,6 +120,13 @@ const ReportForm = ({ appointmentId, onClose }) => {
         value={patient?.patientId?.name}
       >
         <Input placeholder="Enter patient name" disabled />
+      </Form.Item>
+
+      <Form.Item
+        name="age"
+        label="age"
+      >
+        <Input placeholder="Enter patient age" type="number" />
       </Form.Item>
 
       <Form.Item

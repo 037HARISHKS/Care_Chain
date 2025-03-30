@@ -5,7 +5,7 @@ export const createReport = async (req, res) => {
   try {
     console.log("Received request to create report:", req.body);
 
-    const { appointmentId, name, patientId, age, medicineSuggested, remarks, generateReport } = req.body;
+    const { appointmentId, patientName, patientId, age, prescriptions, suggestions } = req.body;
     const doctorId = req.user.id; // Assuming you have user authentication
 
     console.log("Finding application with ID:", appointmentId);
@@ -20,23 +20,20 @@ export const createReport = async (req, res) => {
       appointmentId,
       doctorId,
       patientId,
-      name,
+      patientName,
       age,
-      medicineSuggested,
-      remarks,
-      generateReport,
+      prescriptions,
+      suggestions,
     });
 
     const report = new Report({
       appointmentId,
       doctorId,
       patientId,
-      name,
+      name:patientName,
       age,
-      medicineSuggested,
-      remarks,
-      generateReport,
-      reportFile: null, // No file upload, set to null
+      medicineSuggested:prescriptions,
+      remarks:suggestions
     });
 
     await report.save();
