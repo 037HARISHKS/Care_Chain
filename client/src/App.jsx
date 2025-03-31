@@ -21,6 +21,7 @@ import AdminForDoctor from "./pages/admin/AdminForDoctor";
 import AdminForPatient from "./pages/admin/AdminForPatient";
 import ScanStaffDashboard from "./pages/scanStaff/Dashboard";
 import ReportForm from "./pages/dashboard/ReportForm";
+import LabStaffDashboard from "./pages/labStaff/Dashboard";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
               <Route path="doctor/upcoming" element={<UpcomingRequests />} />
               <Route path="doctor/completed" element={<HistoryPatient />} />
               <Route path="scan-staff" element={<ScanStaffDashboard />} />
+              <Route path="lab-staff" element={<LabStaffDashboard/>}/>
             </Route>
             <Route path="/profile">
               <Route path="patient" element={<PatientProfile />} />

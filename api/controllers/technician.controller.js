@@ -1,5 +1,5 @@
 import Technician from '../models/technician.model.js';
-    import User from '../models/user.model.js';
+import User from '../models/user.model.js';
 
 export const techReportCreationByDoctor = async(req, res) => {
     try {
@@ -100,7 +100,7 @@ export const techReportCreationByDoctor = async(req, res) => {
 export const fetchScanReports = async(req,res)=>{
     try{
         console.log("entered");
-        const reports = await Technicians.find();
+        const reports = await Technician.find();
         console.log("found reports", reports);
         if (!reports) {
             return res.status(404).json({ message: "No scan reports found" });
@@ -115,7 +115,7 @@ export const fetchScanReports = async(req,res)=>{
 
 export const fetchLabReports = async(req,res)=>{
     try{
-        const reports = await Technicians.find();
+        const reports = await Technician.find();
         console.log("found reports", reports);
         if (!reports) {
             return res.status(404).json({ message: "No lab reports found" });

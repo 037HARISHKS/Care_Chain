@@ -182,6 +182,11 @@ export const patientRegister = (req, res) => registerUser(req, res, 'patient');
 export const doctorRegister = (req, res) => registerUser(req, res, 'doctor');
 export const adminRegister = (req, res) => registerUser(req, res, 'admin');
 
+// Registration for Scan Staff
+export const scanStaffRegister = (req, res) => registerUser(req, res, 'ScanStaff');
+
+// Registration for Lab Staff
+export const labStaffRegister = (req, res) => registerUser(req, res, 'LabStaff');
 
 const loginUser = async (req, res, role) => {
     const { email, password } = req.body;
@@ -265,6 +270,16 @@ export const doctorLogin = async (req, res) => {
 
 export const adminLogin = async (req, res) => {
     await loginUser(req, res, 'admin');
+};
+
+// Login for Scan Staff
+export const scanStaffLogin = async (req, res) => {
+    await loginUser(req, res, 'technician');
+};
+
+// Login for Lab Staff
+export const labStaffLogin = async (req, res) => {
+    await loginUser(req, res, 'technician');
 };
 
 export const showDoctors = async (req, res) => {
