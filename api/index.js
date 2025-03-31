@@ -9,6 +9,7 @@ import patientRoutes from "./routes/patient.route.js";
 import appointmentRoutes from "./routes/appointment.route.js";
 import reportRoutes from "./routes/report.route.js";
 import technicianRoutes from "./routes/technician.route.js";
+import scanReport from "./routes/scanReport.route.js"
 // import adminRoutes from "./routes/admin.route.js";
 
 dotenv.config();
@@ -41,6 +42,7 @@ app.use('/api/patient', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/technician', technicianRoutes);
+app.use('/api/scan-reports',scanReport)
 // app.use('/api/admin', adminRoutes);
 
 app.use((err, req, res, next) => {

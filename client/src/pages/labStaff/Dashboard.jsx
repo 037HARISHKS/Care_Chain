@@ -28,6 +28,7 @@ import {
   CalendarOutlined,
 } from "@ant-design/icons";
 import { FaUserInjured, FaFileMedical } from "react-icons/fa";
+import TestReportForm from './TestReportForm';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -46,9 +47,11 @@ const LabStaffDashboard = () => {
   const [selectedTest, setSelectedTest] = useState(null);
   const [form] = Form.useForm();
 
+  const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+
   const handleUploadReport = (testId) => {
     setSelectedTest(testId);
-    setIsModalVisible(true);
+    setIsReportModalVisible(true);
   };
 
   const handleModalClose = () => {
@@ -66,6 +69,15 @@ const LabStaffDashboard = () => {
     } catch (error) {
       message.error("Failed to upload report");
     }
+  };
+
+  const handleReportModalClose = () => {
+    setIsReportModalVisible(false);
+  };
+
+  const handleReportFormSubmit = () => {
+    fetchTestRequests();
+    handleReportModalClose();
   };
 
   const fetchTestRequests = async () => {
@@ -130,6 +142,20 @@ const LabStaffDashboard = () => {
       dataIndex: "test_type",
       key: "test_type",
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<FaFileMedical className="mr-1" />}
+          onClick={() => handleUploadReport(record.appointment_id)}
+        >
+          Make Test Report
+        </Button>
+      ),
+    },
   ];
 
   const StatCard = ({ icon, title, value, color }) => (
@@ -162,7 +188,7 @@ const LabStaffDashboard = () => {
         <Title level={2} style={{ margin: 0 }}>
           Lab Staff Dashboard
         </Title>
-        <Button type="primary" icon={<FileImageOutlined />} size="large">
+        <Button type="primary" icon={<FileImageOutlined />} size="large" onClick={() => setIsReportModalVisible(true)}>
           New Test Request
         </Button>
       </div>
@@ -239,55 +265,11 @@ const LabStaffDashboard = () => {
 
       <Modal
         title="Upload Test Report"
-        visible={isModalVisible}
-        onCancel={handleModalClose}
+        visible={isReportModalVisible}
+        onCancel={handleReportModalClose}
         footer={null}
-        width={600}
       >
-        <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-          <Form.Item
-            name="reportType"
-            label="Report Type"
-            rules={[{ required: true, message: "Please select report type" }]}
-          >
-            <Select>
-              <Option value="preliminary">Preliminary Report</Option>
-              <Option value="final">Final Report</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="findings"
-            label="Findings"
-            rules={[{ required: true, message: "Please enter findings" }]}
-          >
-            <Input.TextArea rows={4} />
-          </Form.Item>
-
-          <Form.Item
-            name="impression"
-            label="Impression"
-            rules={[{ required: true, message: "Please enter impression" }]}
-          >
-            <Input.TextArea rows={4} />
-          </Form.Item>
-
-          <Form.Item
-            name="scanImage"
-            label="Scan Image"
-            rules={[{ required: true, message: "Please upload scan image" }]}
-          >
-            <Upload listType="picture" maxCount={1} beforeUpload={() => false}>
-              <Button icon={<UploadOutlined />}>Upload Image</Button>
-            </Upload>
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Upload Report
-            </Button>
-          </Form.Item>
-        </Form>
+        <TestReportForm onClose={handleReportModalClose} onSubmit={handleReportFormSubmit} />
       </Modal>
     </div>
   );
